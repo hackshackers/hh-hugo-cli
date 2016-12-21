@@ -1,5 +1,9 @@
 <?php
 
+require_once( dirname( __FILE__ ) . '/Markdownify/src/Parser.php' );
+require_once( dirname( __FILE__ ) . '/Markdownify/src/Converter.php' );
+require_once( dirname( __FILE__ ) . '/Markdownify/src/ConverterExtra.php' );
+
 if ( ! class_exists( 'WP_CLI' ) ) {
 	return;
 }
