@@ -66,6 +66,10 @@ class Migrate_Post {
 			'categories' => $categories,
 			'authors' => array( get_the_author_meta( 'display_name', intval( $post->post_author ) ) ),
 			'date' => get_the_date( 'Y-m-d', $post->ID ),
+			'_migration' => array(
+				'id' => $post->ID,
+				'timestamp' => time(),
+			),
 		);
 
 		if ( ! empty( $post->post_excerpt ) ) {
@@ -101,10 +105,11 @@ class Migrate_Post {
 		// apply WP content filters
 		$content = apply_filters( 'the_content', $content );
 
-		// strip inline JS
-		// $content = $this->strip_inline_js( $content );
+		// Markdownify
+		$converter = new Markdownify\ConverterExtra;
+		$markdown = $converter->parseString( $content );
 
-		return $content;
+		return $markdown;
 	}
 
 	/**
@@ -127,10 +132,13 @@ class Migrate_Post {
 			switch ( $site ) {
 				case 'twitter.com':
 				case 't.co':
-					$replace = $this->hugo_shortcode( 'tweet', $link );
+					$replace = $this->hugo_shortcode( 'tweet', $link, true );
 					break;
 
-				// other providers would be added here
+				case 'youtube.com':
+				case 'youtu.be':
+					$replace = $this->hugo_shortcode( 'youtube', $link, true );
+					break;
 			}
 
 			if ( $replace ) {
@@ -149,18 +157,27 @@ class Migrate_Post {
 			return $this->hugo_shortcode( 'youtube', jetpack_get_youtube_id( $atts[0] ) );
 		} );
 
+		add_shortcode( 'vimeo', function( $atts ) {
+			$id = isset( $atts['id'] ) ? $atts['id'] : jetpack_shortcode_get_vimeo_id( $atts );
+			return $this->hugo_shortcode( 'vimeo', $id );
+		} );
+
 		$content = do_shortcode( $content );
 		return $content;
 	}
 
-	public function hugo_shortcode( $provider, $id ) {
-		// handle twitter links
-		if ( 'tweet' === $provider ) {
-			preg_match( '/status(?:es)?\/(\d+)\/?/', $id, $matches );
-			if ( empty( $matches ) ) {
-				return $id;
-			} else {
-				$id = $matches[1];
+	public function hugo_shortcode( $provider, $id, $from_link = false ) {
+		// Convert URL to ID if needed
+		if ( $from_link) {
+			if ( 'tweet' === $provider ) {
+				preg_match( '/status(?:es)?\/(\d+)\/?/', $id, $matches );
+				if ( empty( $matches ) ) {
+					return $id;
+				} else {
+					$id = $matches[1];
+				}
+			} else if ( 'youtube' === $provider ) {
+				$id = jetpack_get_youtube_id( $id );
 			}
 		}
 

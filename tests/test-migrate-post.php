@@ -53,7 +53,11 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 		$this->assertEquals( $this->categories, $front_matter['categories'] );
 		$this->assertEquals( '2013-11-01', $front_matter['date'] );
 		$this->assertEquals( 'lorem ipsum', $front_matter['description'] );
+		$this->assertEquals( $this->posts[0], $front_matter['_migration']['id'] );
+		$this->assertTrue( time() >= $front_matter['_migration']['timestamp'] );
 
+		// Delete migration data since we can't test the ID and timestamp
+		unset( $front_matter['_migration'] );
 		$this->assertEquals(
 			file_get_contents( HH_HUGO_COMMAND_DIR . '/tests/data/expect/front-matter.yml' ),
 			$this->migrator->transform_front_matter( $front_matter )
@@ -65,9 +69,6 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 	}
 
 	public function test_convert_link_embeds() {
-		// Requires some Jetpack libs
-		require_once( HH_PLUGINS_DIR . '/jetpack/class.jetpack-post-images.php' );
-		require_once( HH_PLUGINS_DIR . '/jetpack/class.media-extractor.php' );
 
 		// test input with http and https protocols for good measure
 		$input = "hi\n\nhttp://twitter.com/HacksHackers/status/804429947406286848\nhttps://twitter.com/botic/status/806587782705664005";
@@ -82,14 +83,18 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 	}
 
 	public function test_convert_shortcodes() {
-		require_once( HH_PLUGINS_DIR . '/jetpack/functions.compat.php' );
+		// Note the secquence of the final char in the ID so you can debug
 		$testers = array(
-			array( '{{< youtube H2Ncxw1xfck >}}', '[youtube http://www.youtube.com/watch#!v=H2Ncxw1xfck]' ),
-			array( '{{< youtube H2Ncxw1xfck >}}', '[youtube http://www.youtube.com/watch?v=H2Ncxw1xfck]' ),
-			array( '{{< youtube H2Ncxw1xfck >}}', '[youtube http://www.youtube.com/watch?v=H2Ncxw1xfck&w=320&h=240&fmt=1&rel=0&showsearch=1&hd=0]' ),
-			array( '{{< youtube jF-kELmmvgA >}}', '[youtube http://www.youtube.com/v/jF-kELmmvgA]' ),
-			array( '{{< youtube 9FhMMmqzbD8 >}}', '[youtube http://www.youtube.com/v/9FhMMmqzbD8?fs=1&hl=en_US]' ),
-			array( '{{< youtube Rrohlqeir5E >}}', '[youtube http://youtu.be/Rrohlqeir5E]' ),
+			array( '{{< youtube H2Ncxw1xfc1 >}}', '[youtube http://www.youtube.com/watch#!v=H2Ncxw1xfc1]' ),
+			array( '{{< youtube H2Ncxw1xfc2 >}}', '[youtube http://www.youtube.com/watch?v=H2Ncxw1xfc2]' ),
+			array( '{{< youtube H2Ncxw1xfc3 >}}', '[youtube http://www.youtube.com/watch?v=H2Ncxw1xfc3&w=320&h=240&fmt=1&rel=0&showsearch=1&hd=0]' ),
+			array( '{{< youtube jF-kELmmvg4 >}}', '[youtube http://www.youtube.com/v/jF-kELmmvg4]' ),
+			array( '{{< youtube 9FhMMmqzbD5 >}}', '[youtube http://www.youtube.com/v/9FhMMmqzbD5?fs=1&hl=en_US]' ),
+			array( '{{< youtube Rrohlqeir56 >}}', '[youtube http://youtu.be/Rrohlqeir56]' ),
+			array( '{{< vimeo 141351 >}}', '[vimeo 141351]' ),
+			array( '{{< vimeo 141352 >}}', '[vimeo http://vimeo.com/141352]' ),
+			array( '{{< vimeo 141353 >}}', '[vimeo 141353 h=500&w=350]' ),
+			array( '{{< vimeo 141354 >}}', '[vimeo id=141354 width=350 height=500]' ),
 		);
 		foreach ( $testers as $test ) {
 			$this->assertEquals( $test[0], $this->migrator->convert_shortcodes( $test[1] ) );

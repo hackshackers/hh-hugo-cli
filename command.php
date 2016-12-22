@@ -12,7 +12,6 @@ require_once( HH_HUGO_COMMAND_DIR . '/Markdownify/src/Converter.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/Markdownify/src/ConverterExtra.php' );
 
 // Migration classes
-
 require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-post.php' );
 
 
