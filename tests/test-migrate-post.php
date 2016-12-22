@@ -100,4 +100,34 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 			$this->assertEquals( $test[0], $this->migrator->convert_shortcodes( $test[1] ) );
 		}
 	}
+
+	public function test_filter_markdown() {
+		// empty line, line break in linked image, local domain
+		$input = "foo\n  \nbar[\n![img...[http://hackshackers.alley.dev/]";
+		$output = "foo\n\nbar\n\n[![img...[http://hackshackers.com/]";
+		$this->assertEquals( $output, $this->migrator->filter_markdown( $input ) );
+
+		// multiple line-broken linked images
+		$input = "[\n![img...[\n![img...";
+		$output = "\n\n[![img...\n\n[![img...";
+		$this->assertEquals( $output, $this->migrator->filter_markdown( $input ) );
+	}
+
+	public function test_transform_post_content() {
+		$this->_test_transform_post_content( 'test_basic_4667' );
+		$this->_test_transform_post_content( 'test_es_3533' );
+		$this->_test_transform_post_content( 'test_recent_17696' );
+		$this->_test_transform_post_content( 'test_yt_shortcode_2024' );
+	}
+
+	private function _test_transform_post_content( $filename, $dump = false ) {
+		$input = file_get_contents( HH_HUGO_COMMAND_DIR . '/tests/data/test/' . $filename . '.html' );
+		$output = file_get_contents( HH_HUGO_COMMAND_DIR . '/tests/data/expect/' . $filename . '.md' );
+
+		if ( $dump ) {
+			die( var_dump( $this->migrator->transform_post_content( $input ) ) );
+		}
+
+		$this->assertEquals( $output, $this->migrator->transform_post_content( $input ) );
+	}
 }

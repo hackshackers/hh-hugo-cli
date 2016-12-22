@@ -22,6 +22,8 @@ class Migrate_Post {
 	 */
 	protected $front_matter_src = array();
 
+	protected $local_domain = 'hackshackers.alley.dev';
+
 	/**
 	 * get started
 	 *
@@ -98,6 +100,10 @@ class Migrate_Post {
 	 * @return string Markdownified content
 	 */
 	public function transform_post_content( $content ) {
+
+		// strip extraneous attributes and make sure no one hard-coded any script tags, etc
+		$content = $this->kses( $content );
+
 		// embed URLs and shortcodes to Hugo format
 		$content = $this->convert_link_embeds( $content );
 		$content = $this->convert_shortcodes( $content );
@@ -106,10 +112,62 @@ class Migrate_Post {
 		$content = apply_filters( 'the_content', $content );
 
 		// Markdownify
-		$converter = new Markdownify\ConverterExtra;
+		$converter = new \Markdownify\Converter;
 		$markdown = $converter->parseString( $content );
 
+		$markdown = $this->filter_markdown( $markdown );
+
 		return $markdown;
+	}
+
+	/**
+	 * Handle some known gotchas in WP -> Markdown
+	 */
+	public function filter_markdown( $markdown ) {
+		// Update links
+		$markdown = str_replace( $this->local_domain, 'hackshackers.com', $markdown );
+
+		// remove empty mailchimp embeds
+		$markdown = preg_replace( array( '/<!--End mc_embed_signup-->/', "/<div id=\"mc_embed_signup\">[\s\n]*<\/div>/" ), '', $markdown );
+
+		// trim lines that are just white space or end with &nbsp;
+		$markdown = preg_replace( array( "/\n\s+\n/", "/\n?\s*&nbsp;\s*(\n|$)/" ), "\n\n", $markdown );
+
+		// fix line breaks with linked images
+		$markdown = preg_replace( "/\[\n+\!/", "\n\n[!", $markdown );
+
+		return $markdown;
+	}
+
+	/**
+	 * Disallow the most common HTML element attributes that would prevent
+	 * post_content from being cleanly translated to Markdown
+	 */
+	public function kses( $content ) {
+		$allowed = wp_kses_allowed_html( 'post' );
+
+		$allowed['img'] = array(
+			'src' => true,
+			'title' => true,
+			'alt' => true,
+		);
+		$allowed['a'] = array(
+			'href' => true,
+			'title' => true,
+			'alt' => true,
+		);
+
+		if ( isset( $allowed['script'] ) ) {
+			unset( $allowed['script'] );
+		}
+
+		// unset tag and style attrs
+		foreach( $allowed as &$tag ) {
+			$tag['style'] = false;
+			$tag['class'] = false;
+		}
+
+		return wp_kses( $content, $allowed );
 	}
 
 	/**
