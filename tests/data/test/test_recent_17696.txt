@@ -1,0 +1,90 @@
+Season's greetings, hacks and hackers! The holidays are closing in on us - at least on those of us in the western world, and many groups and people are slowing down and starting to hibernate. But not Hacks/Hackers! There's still time to help us pick a new logo, if you're so inclined - and check out what local groups are up to next week and onward:
+
+https://twitter.com/HacksHackers/status/804429947406286848
+
+<b>The week ahead:</b>
+<ul>
+	<li>Dublin is having a merry <a href="https://www.meetup.com/hacks-hackers-dublin/events/236094987/">Christmas gathering</a></li>
+	<li>San Francisco is <a href="https://www.eventbrite.com/e/holiday-party-for-bay-area-journalists-tickets-27677632544">meeting</a> Solutions Journalism Network's Bay Area chapter for a drink</li>
+	<li><a href="http://www.meetup.com/Hacks-Hackers-Miami/">Miami</a> is holding its regular OpenHack Miami</li>
+	<li><a href="http://www.meetup.com/hackshackersIRE/">IRE</a> in Missouri is holding its weekly open lab</li>
+	<li>Nairobi is <a href="https://docs.google.com/forms/d/13iJf6EHjGSSPJWCCgv5SSrSRn43yoMP-uuITZ4sgwvI/viewform?edit_requested=true">discussing how</a> governments can be held more accountable</li>
+</ul>
+<b>Chapter spotlight:</b>
+
+<a href="http://t.co/QmrqLnGWgJ">Munich</a> met this week to <a href="https://www.meetup.com/Hacks-Hackers-Munchen/events/235775473/">have a discussion</a> many of us are having: Facebook bots, prediction models and how they influenced the Trump election. Check out <a href="https://twitter.com/search?q=%23hhmuc">#hhmuc</a> if you'd like to see more slides from the presentations and notes from attendees:
+
+https://twitter.com/botic/status/806587782705664005
+
+https://twitter.com/HacksHackersMUC/status/806592242156797953
+
+<b>Worth a read:</b>
+<ul>
+	<li>Nationalist, populist movements are growing rapidly in Europe and the Americas, and the NYT has become "ground zero" for <a href="http://www.nytimes.com/2016/12/03/public-editor/alt-right-stephen-bannon-liz-spayd-public-editor.html?_r=0">a raging debate</a> over whether and how to use the term "alt-right" (NYTimes)</li>
+	<li>As the Web developed, websites moved toward developing their own mobile apps. Now they're <a href="https://medium.com/swlh/browsers-not-apps-are-the-future-of-mobile-c552752ff75#.qbowmdltx">moving back the other way</a> (Medium)</li>
+	<li>The Organized Crime and Corruption Reporting Project (OCCRP) is <a href="https://www.occrp.org/en/40-press-releases/presss-releases/5872-global-partnership-to-open-new-fronts-in-fight-against-corruption">merging forces</a> with a wide array of organizations from Europe, Africa and the Americas to expand its anti-corruption coverage (OCCRP)</li>
+</ul>
+<b>Job openings:</b>
+<ul>
+	<li>Europe:
+<ul>
+	<li>KSF Media in Helsinki has is looking for a <a href="https://docs.google.com/forms/d/e/1FAIpQLSfsD6aDz5_B-rqwp560PdV8uOlf4e91l7rRzJ_upjv9TWQKdQ/viewform">data scientist and front-end engineers</a></li>
+	<li>Conde Nast is hiring an <a href="https://condenastuk.avature.net/careers/JobDetail/Interactive-Developer/737">interactive developer</a> in London</li>
+</ul>
+</li>
+	<li>Latin America:
+<ul>
+	<li>Fox is looking for a <a href="http://ijnet.org/en/opportunities/fox-seeks-digital-content-manager-brazil">digital content manager</a> in Brazil</li>
+</ul>
+</li>
+	<li>North America:
+<ul>
+	<li>Applications are open to become a <a href="https://www.presidentialinnovation.org/news/2016/12/5/only-one-week-remaining-to-apply-for-the-presidential-innovation-fellows-spring-2017-cohort">Presidential Innovation Fellow</a></li>
+	<li>Chronicle of Higher Education is hiring a new <a href="http://chrondata.github.io/">data editor</a></li>
+	<li>Newsday has an opening for a <a href="http://www.newsday.com/services/newsday-com-job-openings-1.1532621">digital news editor</a></li>
+	<li>Hearst News Digital is seeking a <a href="https://t.co/MLyjO7d4kS">UX lead</a> in New York</li>
+	<li>The Standard-Examiner in Utah is seeking a <a href="http://ire.org/jobs/job/924/">database reporter</a></li>
+	<li>Crain's is looking for an <a href="http://talkingbiznews.com/biz-news-help-wanted/crains-detroit-seeks-entrepreneurship-reporter-2/">entrepreneurship reporter</a> in Detroit</li>
+	<li>Emerson College has <a href="https://emerson.peopleadmin.com/postings/13502">two openings</a> in its digital journalism department</li>
+	<li>Observer Media is hiring <a href="http://stackoverflow.com/jobs/130406/senior-software-engineer-observer-media">full-stack enginners</a></li>
+</ul>
+</li>
+	<li>Asia:
+<ul>
+	<li>South China Morning Post has three open positions for <a href="http://www.cpjobs.com/hk/job/web-developer-frontend-ref-caf-dit-fwd-1639712">web developers</a></li>
+	<li>Marie Claire magazine is looking for a <a href="http://hk.jobsdb.com/HK/EN/Search/FindJobs?KeyOpt=COMPLEX&amp;JSRV=1&amp;RLRSF=1&amp;JobCat=80&amp;JSSRC=JSRSB&amp;recentSelected=94">digital content editor</a> in China</li>
+</ul>
+</li>
+</ul>
+<b>Upcoming events:</b>
+<ul>
+	<li>December:
+<ul>
+	<li>13 - Amsterdam, Netherlands - <a href="https://newsimpact.io/summits/amsterdam-16">News Impact Summit</a> on emotions and digital storytelling</li>
+</ul>
+</li>
+	<li>January:
+<ul>
+	<li>15-18 - Cape Town, South Africa - UN <a href="http://undataforum.org/">World Data Forum</a></li>
+	<li>21 - Berlin, Germany - "<a href="http://dju.verdi.de/journalistentag">Hashtag, High Tech, Hackmac</a>" data journalism day</li>
+	<li>27-28 - Odense, Denmark - <a href="http://noda2017.dk/">NODA17</a>, the Nordic Data Journalism Conference</li>
+</ul>
+</li>
+	<li>February:
+<ul>
+	<li>6 - Paris, France - <a href="https://newsimpact.io/summits/news-impact-summit-paris">News Impact Summit</a></li>
+</ul>
+</li>
+</ul>
+<div id="mc_embed_signup"><form id="mc-embedded-subscribe-form" class="validate" action="//hackshackers.us1.list-manage.com/subscribe/post?u=c56f2e53d5ed6ef87f8aaa75c&amp;id=fb2bc6f10b" method="post" name="mc-embedded-subscribe-form" novalidate="" target="_blank">
+<div id="mc_embed_signup_scroll">
+<div class="mc-field-group"><label for="mce-EMAIL">Not subscribed yet? Enter your email to get Hacks/Hackers news and updates in your inbox weekly: </label></div>
+<div class="mc-field-group"><input id="mce-EMAIL" class="required email" name="EMAIL" type="email" value="" /></div>
+<!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+<div style="position: absolute; left: -5000px;"><input tabindex="-1" name="b_c56f2e53d5ed6ef87f8aaa75c_fb2bc6f10b" type="text" value="" /></div>
+<div class="clear"><input id="mc-embedded-subscribe" class="button" name="subscribe" type="submit" value="Subscribe" /></div>
+</div>
+</form></div>
+<!--End mc_embed_signup-->
+
+&nbsp;

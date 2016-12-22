@@ -11,6 +11,9 @@ function _manually_load_plugin() {
 	if ( ! defined( 'HH_HUGO_UNIT_TESTS_RUNNING' ) ) {
 		define( 'HH_HUGO_UNIT_TESTS_RUNNING', true );
 	}
+	if ( !defined( 'HH_PLUGINS_DIR' ) ) {
+		define( 'HH_PLUGINS_DIR', '/var/www/hackshackers/wp-content/plugins' );
+	}
 	require dirname( dirname( __FILE__ ) ) . '/command.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
