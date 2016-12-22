@@ -45,9 +45,30 @@ class Migrate_Post {
 
 		$this->front_matter_src = $this->extract_front_matter( $this->post );
 		$this->front_matter = $this->transform_front_matter( $this->front_matter_src );
-		$this->content = $this->transform_post_content( $this->post->post_content );
+		$this->markdown = $this->transform_post_content( $this->post->post_content );
+
+		// Check content for excessive HTML tags, flag for manual inspection
+		$this->num_tags = $this->count_tags( $this->markdown );
+		if ( 10 < $this->num_tags ) {
+			return array( 'error' => sprintf( 'Markdown for post %s contains %s HTML tags; manual inspection required.', $this->post->ID, $this->num_tags ) );
+		}
+
+		// Write output to file
 
 		return array( 'success' => 'Migrated post ' . $this->post->ID );
+	}
+
+	/**
+	 * Count the number of HTML tags in the string. Used to flag Markdown for manual review
+	 *
+	 * @param string $input
+	 * @param int
+	 */
+	public function count_tags( $input ) {
+		// split string by html opening tags, doesn't need to be exact
+		$count = count( preg_split( '/<([A-Z][A-Z0-9]*)\b[^>]*>/i', $input ) );
+
+		return $count - 1;
 	}
 
 	/**
@@ -122,6 +143,7 @@ class Migrate_Post {
 
 	/**
 	 * Handle some known gotchas in WP -> Markdown
+	 * @todo unit testing for this method
 	 */
 	public function filter_markdown( $markdown ) {
 		// Update links
@@ -209,6 +231,9 @@ class Migrate_Post {
 		return $content;
 	}
 
+	/**
+	 * Convert Jetpack media embeds and other shortcodes
+	 */
 	public function convert_shortcodes( $content ) {
 		// Override Jetpack shortcodes
 		add_shortcode( 'youtube', function( $atts ) {
@@ -220,10 +245,21 @@ class Migrate_Post {
 			return $this->hugo_shortcode( 'vimeo', $id );
 		} );
 
+		/**
+		 * @todo handle quote, caption
+		 */
+
 		$content = do_shortcode( $content );
 		return $content;
 	}
 
+	/**
+	 * Generate Hugo shortcode, e.g. `{{< tweet 12341234 >}}`
+	 *
+	 * @param string $provider
+	 * @param string|int $id Can be id or link
+	 * @param bool $from_link If true, parse id from URL depending on provider
+	 */
 	public function hugo_shortcode( $provider, $id, $from_link = false ) {
 		// Convert URL to ID if needed
 		if ( $from_link) {

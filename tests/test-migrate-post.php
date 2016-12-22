@@ -40,6 +40,17 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 		$this->migrator = new HH_Hugo\Migrate_Post('test');
 	}
 
+	/**
+	 * Get contents of test data file
+	 *
+	 * @param string $type 'test' or 'expect'
+	 * @param string $filename
+	 * @return string Contents of file
+	 */
+	private function _get_test_data( $type, $filename ) {
+		return file_get_contents( HH_HUGO_COMMAND_DIR . '/tests/data/' . $type . '/' . $filename );
+	}
+
 	public function test_class_exists() {
 		$this->assertTrue( class_exists( '\\HH_Hugo\\Migrate_Post' ) );
 	}
@@ -59,7 +70,7 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 		// Delete migration data since we can't test the ID and timestamp
 		unset( $front_matter['_migration'] );
 		$this->assertEquals(
-			file_get_contents( HH_HUGO_COMMAND_DIR . '/tests/data/expect/front-matter.yml' ),
+			$this->_get_test_data( 'expect', 'front-matter.yml' ),
 			$this->migrator->transform_front_matter( $front_matter )
 		);
 
@@ -121,13 +132,22 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 	}
 
 	private function _test_transform_post_content( $filename, $dump = false ) {
-		$input = file_get_contents( HH_HUGO_COMMAND_DIR . '/tests/data/test/' . $filename . '.html' );
-		$output = file_get_contents( HH_HUGO_COMMAND_DIR . '/tests/data/expect/' . $filename . '.md' );
+		$input = $this->_get_test_data( 'test', $filename . '.html' );
+		$output = $this->_get_test_data( 'expect', $filename . '.md' );
 
 		if ( $dump ) {
 			die( var_dump( $this->migrator->transform_post_content( $input ) ) );
 		}
 
 		$this->assertEquals( $output, $this->migrator->transform_post_content( $input ) );
+	}
+
+	public function test_count_tags() {
+		$input = $this->_get_test_data( 'test', 'count_tags.html' );
+		$this->assertEquals( 11, $this->migrator->count_tags( $input ) );
+		$this->assertEquals( 1, $this->migrator->count_tags( '<h1>title</h1>' ) );
+		$this->assertEquals( 1, $this->migrator->count_tags( '<img src="http://foo.bar/img.png" />' ) );
+		$this->assertEquals( 2, $this->migrator->count_tags( '<p><span>hi</span></p>' ) );
+		$this->assertEquals( 0, $this->migrator->count_tags( 'hello world' ) );
 	}
 }
