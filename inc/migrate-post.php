@@ -44,7 +44,7 @@ class Migrate_Post {
 			return;
 		}
 
-		$this->slug = $post->post_name;
+		$this->slug = $this->post->post_name;
 		$this->front_matter_src = $this->extract_front_matter( $this->post );
 		$this->front_matter = $this->transform_front_matter( $this->front_matter_src );
 		$this->markdown = $this->transform_post_content( $this->post->post_content );
@@ -59,12 +59,12 @@ class Migrate_Post {
 		// Write output to file
 		$file = new Write_File( $this->slug, $this->front_matter_src['date'], $this->front_matter, $this->markdown );
 
-		if ( !$file ) {
+		if ( ! $file->get( 'output' ) ) {
 			$this->result = array( 'error' => sprintf( 'Error writing post %s to %s', $this->slug, $this->front_matter['date'] ) );
 			return;
 		}
 
-		$this->result = array( 'success' => sprintf( 'Migrated post %s to %s', $this->post->ID, $file ) );
+		$this->result = array( 'success' => sprintf( 'Migrated post %s to %s', $this->post->ID, $file->get( 'output' ) ) );
 	}
 
 	public function get( $key ) {

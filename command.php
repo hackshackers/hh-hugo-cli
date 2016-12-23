@@ -12,6 +12,7 @@ require_once( HH_HUGO_COMMAND_DIR . '/Markdownify/src/Converter.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/Markdownify/src/ConverterExtra.php' );
 
 // Migration classes
+require_once( HH_HUGO_COMMAND_DIR . '/inc/write-file.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-post.php' );
 
 
@@ -29,7 +30,7 @@ class HH_Hugo_Command extends WP_CLI_Command {
 
 	function __construct() {
 		// Make sure these plugins are disabled
-		WP_CLI::runcommand( 'plugin deactivate ' . implode( ' ', $this->deactivate_plugins ) );
+		// WP_CLI::runcommand( 'plugin deactivate ' . implode( ' ', $this->deactivate_plugins ) );
 	}
 
 	function transform_post( $args ) {
