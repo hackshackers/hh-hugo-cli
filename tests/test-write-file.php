@@ -5,10 +5,16 @@ class HH_Hugo_Test_Write_File extends WP_UnitTestCase {
 	}
 
 	function tearDown() {
-		unlink( './hugo-content-test/2016/12/the-post.md' );
-		$dirs = array( './2016/12/23', './2016/12', './hugo-content-test/2016/12' );
+		$test_file = './hugo-content-test/2016/12/the-post.md';
+		if ( file_exists( $test_file ) ) {
+			unlink( $test_file );
+		}
+
+		$dirs = array( './2016/12/23', './2016/12', './2016', './hugo-content-test/2016/12', './hugo-content-test/2016' );
 		foreach ( $dirs as $dir ) {
-			rmdir( $dir );
+			if ( is_dir( $dir ) ) {
+				rmdir( $dir );
+			}
 		}
 	}
 
