@@ -20,8 +20,26 @@ if ( ! class_exists( 'WP_CLI' ) ) {
 }
 
 class HH_Hugo_Command extends WP_CLI_Command {
+
+	protected $deactivate_plugins = array(
+		'w3-total-cache',
+		'wordpress-seo',
+		'google-analytics-for-wordpress',
+	);
+
+	function __construct() {
+		// Make sure these plugins are disabled
+		WP_CLI::runcommand( 'plugin deactivate ' . implode( ' ', $this->deactivate_plugins ) );
+	}
+
 	function transform_post( $args ) {
-		$migrate = new HH_Hugo\Migrate_Post( $args[0] );
+		$migrated = new HH_Hugo\Migrate_Post( $args[0] );
+		$result = $migrated->get( 'result' );
+		if ( 'success' === array_keys( $result)[0] ) {
+			WP_CLI::success( array_values( $result )[0] );
+		} else {
+			WP_CLI::warning( array_values( $result )[0] );
+		}
 	}
 }
 

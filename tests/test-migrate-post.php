@@ -37,7 +37,7 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 			'post_content' => 'lorem ipsum',
 		) );
 
-		$this->migrator = new HH_Hugo\Migrate_Post('test');
+		$this->migrator = new HH_Hugo\Migrate_Post( null );
 	}
 
 	/**

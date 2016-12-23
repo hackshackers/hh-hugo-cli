@@ -32,7 +32,7 @@ class Migrate_Post {
 	 */
 	public function __construct( $post ) {
 		// just return the class for unit testing
-		if ( defined( 'HH_HUGO_UNIT_TESTS_RUNNING' ) ) {
+		if ( empty( $post ) && defined( 'HH_HUGO_UNIT_TESTS_RUNNING' ) ) {
 			return $this;
 		}
 
@@ -40,9 +40,11 @@ class Migrate_Post {
 
 		$this->post = get_post( $post );
 		if ( empty( $this->post ) ) {
-			return array( 'error' => 'Invalid post ID or object.' );
+			$this->result = array( 'error' => 'Invalid post ID or object.' );
+			return;
 		}
 
+		$this->slug = $post->post_name;
 		$this->front_matter_src = $this->extract_front_matter( $this->post );
 		$this->front_matter = $this->transform_front_matter( $this->front_matter_src );
 		$this->markdown = $this->transform_post_content( $this->post->post_content );
@@ -50,12 +52,23 @@ class Migrate_Post {
 		// Check content for excessive HTML tags, flag for manual inspection
 		$this->num_tags = $this->count_tags( $this->markdown );
 		if ( 10 < $this->num_tags ) {
-			return array( 'error' => sprintf( 'Markdown for post %s contains %s HTML tags; manual inspection required.', $this->post->ID, $this->num_tags ) );
+			$this->result =  array( 'error' => sprintf( 'Markdown for post %s contains %s HTML tags; manual inspection required.', $this->post->ID, $this->num_tags ) );
+			return;
 		}
 
 		// Write output to file
+		$file = new Write_File( $this->slug, $this->front_matter_src['date'], $this->front_matter, $this->markdown );
 
-		return array( 'success' => 'Migrated post ' . $this->post->ID );
+		if ( !$file ) {
+			$this->result = array( 'error' => sprintf( 'Error writing post %s to %s', $this->slug, $this->front_matter['date'] ) );
+			return;
+		}
+
+		$this->result = array( 'success' => sprintf( 'Migrated post %s to %s', $this->post->ID, $file ) );
+	}
+
+	public function get( $key ) {
+		return isset( $this->$key ) ? $this->$key : null;
 	}
 
 	/**
@@ -65,6 +78,7 @@ class Migrate_Post {
 	 * @param int
 	 */
 	public function count_tags( $input ) {
+
 		// split string by html opening tags, doesn't need to be exact
 		$count = count( preg_split( '/<([A-Z][A-Z0-9]*)\b[^>]*>/i', $input ) );
 

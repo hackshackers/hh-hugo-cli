@@ -1,0 +1,127 @@
+---
+# List of plugins that were active before migration
+-
+  name: akismet
+  status: active
+  update: available
+  version: 3.1.7
+-
+  name: cloudflare
+  status: active
+  update: available
+  version: 1.3.20
+-
+  name: debug-bar
+  status: active
+  update: available
+  version: 0.8.2
+-
+  name: debug-bar-console
+  status: active
+  update: none
+  version: "0.3"
+-
+  name: disqus-comment-system
+  status: active
+  update: available
+  version: "2.84"
+-
+  name: embedly
+  status: active
+  update: available
+  version: 4.0.7
+-
+  name: feedburner_feedsmith_plugin_2.3
+  status: active
+  update: none
+  version: 2.3.1
+-
+  name: flickr-widget
+  status: active
+  update: none
+  version: "0.1"
+-
+  name: google-1
+  status: active
+  update: none
+  version: 0.1.1
+-
+  name: google-analytics-for-wordpress
+  status: active
+  update: available
+  version: 5.4.6
+-
+  name: hide-categories
+  status: active
+  update: none
+  version: "1.2"
+-
+  name: inline-google-docs
+  status: active
+  update: none
+  version: "0.9"
+-
+  name: jetpack
+  status: active
+  update: none
+  version: 3.1.1
+-
+  name: just-the-page
+  status: active
+  update: none
+  version: "1.0"
+-
+  name: my-page-order
+  status: active
+  update: none
+  version: 3.3.2
+-
+  name: phplist-form-integration
+  status: active
+  update: none
+  version: "1.7"
+-
+  name: simple-301-redirects
+  status: active
+  update: available
+  version: "1.06"
+-
+  name: simple-pull-quote
+  status: active
+  update: available
+  version: "1.4"
+-
+  name: simple-tags
+  status: active
+  update: available
+  version: 2.4.5
+-
+  name: storify
+  status: active
+  update: none
+  version: 1.0.9
+-
+  name: w3-total-cache
+  status: active
+  update: available
+  version: 0.9.4.1
+-
+  name: wp-db-backup
+  status: active
+  update: available
+  version: 2.3.0
+-
+  name: wordpress-notification-bar
+  status: active
+  update: available
+  version: 1.3.5
+-
+  name: wp-emphasis
+  status: active
+  update: none
+  version: "0.7"
+-
+  name: wordpress-seo
+  status: active
+  update: available
+  version: 3.0.7
