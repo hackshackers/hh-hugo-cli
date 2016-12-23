@@ -20,6 +20,9 @@ if ( ! class_exists( 'WP_CLI' ) ) {
 	return;
 }
 
+/**
+ * Commands for Hacks/Hackers WP -> Hugo migration
+ */
 class HH_Hugo_Command extends WP_CLI_Command {
 
 	protected $deactivate_plugins = array(
@@ -29,18 +32,70 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	);
 
 	function __construct() {
-		// Make sure these plugins are disabled
-		// WP_CLI::runcommand( 'plugin deactivate ' . implode( ' ', $this->deactivate_plugins ) );
+		// Make sure thse plugins are deactivated, if any are active
+		$to_deactivate = array_filter( $this->deactivate_plugins, function( $plugin ) {
+			return $this->_cli_plugin_is_active( $plugin );
+		} );
+		if ( ! empty( $to_deactivate ) ) {
+			WP_CLI::runcommand( 'plugin deactivate ' . implode( ' ', $to_deactivate ) );
+		}
 	}
 
-	function transform_post( $args ) {
-		$migrated = new HH_Hugo\Migrate_Post( $args[0] );
-		$result = $migrated->get( 'result' );
-		if ( 'success' === array_keys( $result)[0] ) {
-			WP_CLI::success( array_values( $result )[0] );
-		} else {
-			WP_CLI::warning( array_values( $result )[0] );
+	private function _cli_plugin_is_active( $plugin ) {
+		$stdout = WP_CLI::runcommand( 'plugin status ' . $plugin, array( 'return' => 'all' ) )->stdout;
+		return false !== strpos( $stdout, 'Status: Active' );
+	}
+
+	/**
+	 * Migrate a single item from WP `post` post type to Hugo `blog` section
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>
+	 * : WordPress post ID or comma-separated list of IDs to migrate
+	 *
+	 * [--verbose]
+	 * : Print extra output
+	 *
+	 * [--dry-run]
+	 * : Run without touching any Markdown files
+	 *
+	 * ## EXAMPLES
+	 *
+	 * wp hh-hugo migrate_post 123
+	 */
+	function migrate_post( $args, $assoc_args, $standalone = true ) {
+		$verbose = isset( $assoc_args['verbose'] );
+		$dry_run = isset( $assoc_args['dry-run'] );
+
+		// Convert to array if called internally with single post
+		$posts = explode( ',', $args[0] );
+
+		foreach ( $posts as $post ) {
+			$migrated = new HH_Hugo\Migrate_Post( $post, $dry_run );
+			$result = $migrated->get( 'result' );
+
+			// $result will be in format like array( 'success' => 'message' )
+			if ( 'success' === array_keys( $result )[0] && ( $standalone || $verbose ) ) {
+				WP_CLI::line( array_values( $result )[0] );
+			} elseif ( 'success' !== array_keys( $result )[0] ) {
+				WP_CLI::warning( array_values( $result )[0] );
+			}
 		}
+	}
+
+	/**
+	 * Delete hugo-content directory
+	 *
+	 * ## EXAMPLES
+	 *
+	 * wp hh-hugo clear_content_dir
+	 */
+	function delete_content_dir( $args, $assoc_args ) {
+		WP_CLI::confirm( 'Are you sure you want to delete the hugo-content directory?' );
+		$path = HH_HUGO_COMMAND_DIR . '/hugo-content';
+		exec( 'rm -rf ' . $path );
+		WP_CLI::success( 'Deleted hugo-content directory' );
 	}
 }
 

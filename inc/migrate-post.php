@@ -27,10 +27,10 @@ class Migrate_Post {
 	/**
 	 * get started
 	 *
-	 * @param int|WP_Post Post to migrate
-	 * @return array 'success'|'error' => message
+	 * @param int|WP_Post $post Post to migrate
+	 * @param bool $dry_run Defaults to false, if true don't write output to file
 	 */
-	public function __construct( $post ) {
+	public function __construct( $post, $dry_run = false ) {
 		// just return the class for unit testing
 		if ( empty( $post ) && defined( 'HH_HUGO_UNIT_TESTS_RUNNING' ) ) {
 			return $this;
@@ -57,7 +57,7 @@ class Migrate_Post {
 		}
 
 		// Write output to file
-		$file = new Write_File( $this->slug, $this->front_matter_src['date'], $this->front_matter, $this->markdown );
+		$file = new Write_File( $this->slug, $this->front_matter_src['date'], $this->front_matter, $this->markdown, $dry_run );
 
 		if ( ! $file->get( 'output' ) ) {
 			$this->result = array( 'error' => sprintf( 'Error writing post %s to %s', $this->slug, $this->front_matter['date'] ) );

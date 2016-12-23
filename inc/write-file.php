@@ -1,13 +1,5 @@
 <?php
-/**
- * Writes file from transformed post data
- *
- * @param string $slug From WordPress post_name
- * @param string $date YYYY-MM-DD
- * @param string $front_matter YAML for post front matter
- * @param string $markdown Post content as markdown
- * @return string|bool File path if successful; false if failed
- */
+
 namespace HH_Hugo;
 use HH_Hugo\Write_File;
 
@@ -19,7 +11,16 @@ class Write_File {
 	protected $blog_depth = 2;
 	protected $ext = '.md';
 
-	public function __construct( $slug, $date = null, $front_matter = null, $markdown = null ) {
+	/**
+	 * Writes file from transformed post data
+	 *
+	 * @param string $slug From WordPress post_name
+	 * @param string $date YYYY-MM-DD
+	 * @param string $front_matter YAML for post front matter
+	 * @param string $markdown Post content as markdown
+	 * @param bool $dry_run Defaults to false, if true don't write output to file
+	 */
+	public function __construct( $slug, $date = null, $front_matter = null, $markdown = null, $dry_run = false ) {
 		// just return the class for unit testing
 		if ( empty( $slug ) && defined( 'HH_HUGO_UNIT_TESTS_RUNNING' ) ) {
 			return $this;
@@ -28,13 +29,18 @@ class Write_File {
 		$content_dir = defined( 'HH_HUGO_UNIT_TESTS_RUNNING' ) ? 'hugo-content-test' : 'hugo-content';
 		$this->root_dir = trailingslashit( HH_HUGO_COMMAND_DIR ) . $content_dir;
 		$this->content = $front_matter . "\n" . $markdown;
-		$this->file_rel_dir = $this->get_rel_dir( $date, $this->blog_depth, $this->root_dir );
+		$this->file_rel_dir = $this->get_rel_dir( $date, $this->blog_depth, $this->root_dir, $dry_run );
 
 		if ( ! $this->file_rel_dir ) {
 			return;
 		}
 		$rel_path = $this->file_rel_path( $slug, $this->file_rel_dir, $this->ext );
-		$written = file_put_contents( $this->file_abs_path( $this->root_dir, $rel_path ), $this->content );
+
+		if ( $dry_run ) {
+			$written = true;
+		} else {
+			$written = file_put_contents( $this->file_abs_path( $this->root_dir, $rel_path ), $this->content );
+		}
 
 		$this->output = $written ? $rel_path : null;
 	}
@@ -50,9 +56,10 @@ class Write_File {
 	 * @param string $date YYYY-MM-DD
 	 * @param int $blog_depth Depth of nested directories
 	 * @param string $root_dir
+	 * @param bool $dry_run If true, don't create directory;
 	 * @return string
 	 */
-	public function get_rel_dir( $date, $blog_depth, $root_dir ) {
+	public function get_rel_dir( $date, $blog_depth, $root_dir, $dry_run = false ) {
 		// Get relative path from hugo-content by date
 		// e.g. 2016/12
 		$date_parts = explode( '-', $date );
@@ -65,13 +72,17 @@ class Write_File {
 			$i++;
 		}
 
-		// create directory if it doesn't already exist
-		$dir = trailingslashit( $root_dir ) . $rel_dir;
-		if ( ! $exists = is_dir( $dir ) ) {
-			$exists = mkdir( $dir, 0755, true );
+		if ( $dry_run ) {
+			return $rel_dir;
 		}
 
-		return ! $exists ? null : $rel_dir;
+		// create directory if it doesn't already exist
+		$dir = trailingslashit( $root_dir ) . $rel_dir;
+		if ( ! $dir_exists = is_dir( $dir ) ) {
+			$dir_exists = mkdir( $dir, 0755, true );
+		}
+
+		return ! $dir_exists ? null : $rel_dir;
 	}
 
 	/**
