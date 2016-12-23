@@ -52,7 +52,7 @@ class Migrate_Post {
 		// Check content for excessive HTML tags, flag for manual inspection
 		$this->num_tags = $this->count_tags( $this->markdown );
 		if ( 10 < $this->num_tags ) {
-			$this->result =  array( 'error' => sprintf( 'Markdown for post %s contains %s HTML tags; manual inspection required.', $this->post->ID, $this->num_tags ) );
+			$this->result = array( 'error' => sprintf( 'Markdown for post %s contains %s HTML tags; manual inspection required.', $this->post->ID, $this->num_tags ) );
 			return;
 		}
 
@@ -138,6 +138,7 @@ class Migrate_Post {
 
 		// strip extraneous attributes and make sure no one hard-coded any script tags, etc
 		$content = $this->kses( $content );
+		$content = $this->strip_no_attr_tags( $content );
 
 		// embed URLs and shortcodes to Hugo format
 		$content = $this->convert_link_embeds( $content );
@@ -153,6 +154,14 @@ class Migrate_Post {
 		$markdown = $this->filter_markdown( $markdown );
 
 		return $markdown;
+	}
+
+	public function strip_no_attr_tags( $content ) {
+		// space out any divs that are next to each other
+		$content = preg_replace( '/<\/(div|p)><\1>/', "</\${1}>\n\n<\${1}>", $content );
+
+		// strip tags that don't have attributes
+		return preg_replace( '/<(div|span|p)>(.*?)<\/\1>/s', '${2}', $content );
 	}
 
 	/**
@@ -193,14 +202,18 @@ class Migrate_Post {
 			'alt' => true,
 		);
 
-		if ( isset( $allowed['script'] ) ) {
-			unset( $allowed['script'] );
+		// disallow tags
+		foreach ( array( 'script' ) as $tagname ) {
+			if ( isset( $allowed[ $tagname ] ) ) {
+				unset( $allowed[ $tagname ] );
+			}
 		}
 
-		// unset tag and style attrs
-		foreach( $allowed as &$tag ) {
+		// disallow attrs
+		foreach ( $allowed as &$tag ) {
 			$tag['style'] = false;
 			$tag['class'] = false;
+			$tag['dir'] = false;
 		}
 
 		return wp_kses( $content, $allowed );
@@ -263,8 +276,38 @@ class Migrate_Post {
 		 * @todo handle quote, caption
 		 */
 
+		add_shortcode( 'caption', function( $atts, $content ) {
+			return $this->hugo_figure( $content );
+		} );
+
 		$content = do_shortcode( $content );
 		return $content;
+	}
+
+	public function hugo_figure( $caption_inner ) {
+		$pattern = '/(?:<a href="([^"]+)">)?<img src="([^"]+)" ?(?:alt="([^"]+)")? ?\/>\s*(?:<\/a>)?(.+)?/';
+		if ( ! preg_match( $pattern, $caption_inner, $matches ) ) {
+			return;
+		}
+
+		$hugo_atts = array();
+		$hugo_atts['link'] = ! empty( $matches[1] ) ? $matches[1] : null;
+		$hugo_atts['src'] = ! empty( $matches[2] ) ? $matches[2] : null;
+		$hugo_atts['alt'] = ! empty( $matches[3] ) ? trim( $matches[3] ) : null;
+		$hugo_atts['caption'] = ! empty( $matches[4] ) ? trim( $matches[4] ) : null;
+
+		if ( ! $hugo_atts['src'] ) {
+			return '';
+		}
+
+		$output = '{{< figure ';
+		foreach ( $hugo_atts as $key => $value ) {
+			if ( $value ) {
+				$output .= $key . '="' . $value . '" ';
+			}
+		}
+
+		return $output . '>}}';
 	}
 
 	/**
@@ -276,7 +319,7 @@ class Migrate_Post {
 	 */
 	public function hugo_shortcode( $provider, $id, $from_link = false ) {
 		// Convert URL to ID if needed
-		if ( $from_link) {
+		if ( $from_link ) {
 			if ( 'tweet' === $provider ) {
 				preg_match( '/status(?:es)?\/(\d+)\/?/', $id, $matches );
 				if ( empty( $matches ) ) {

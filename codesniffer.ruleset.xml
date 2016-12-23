@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<ruleset name="WordPress Theme Coding Standards Configuration">
+	<!-- Set a description for this ruleset. -->
+	<description>Code standard rules to check against a WordPress Theme.</description>
+
+	<exclude-pattern>tests/*</exclude-pattern>
+	<exclude-pattern>Markdownify/*</exclude-pattern>
+
+	<!-- Include the WordPress ruleset, with exclusions. -->
+	<rule ref="WordPress-VIP">
+		<!-- Not actually on VIP -->
+		<exclude name="WordPress.VIP.RestrictedFunctions.wp_get_post_terms" />
+		<!-- All CLI here... -->
+		<exclude name="WordPress.VIP.PostsPerPage.posts_per_page" />
+	</rule>
+
+	<!-- Tweak the VIP rules -->
+	<rule ref="WordPress.XSS.EscapeOutput.OutputNotEscaped">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.XSS.EscapeOutput.OutputNotSanitized">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.XSS.EscapeOutput.">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.XSS.EscapeOutput">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.CSRF.NonceVerification.NoNonceVerification">
+		<type>warning</type>
+	</rule>
+
+	<!-- Ignore for post type formatting in file names -->
+	<rule ref="WordPress.Files.FileName.UnderscoresNotAllowed">
+		<type>warning</type>
+	</rule>
+
+	<rule ref="WordPress.VIP.FileSystemWritesDisallow.FileWriteDetected">
+		<exclude-pattern>inc/write-file.php</exclude-pattern>
+	</rule>
+
+</ruleset>

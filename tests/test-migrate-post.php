@@ -150,4 +150,48 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 		$this->assertEquals( 2, $this->migrator->count_tags( '<p><span>hi</span></p>' ) );
 		$this->assertEquals( 0, $this->migrator->count_tags( 'hello world' ) );
 	}
+
+	public function test_strip_no_attr_tags() {
+		$expect = 'content of div';
+		$actual = $this->migrator->strip_no_attr_tags( '<div>content of div</div>' );
+		$this->assertEquals( $expect, $actual );
+
+		$expect = '<img src="http://foo.bar" />';
+		$actual = $this->migrator->strip_no_attr_tags( '<div><img src="http://foo.bar" /></div>' );
+		$this->assertEquals( $expect, $actual );
+
+		$expect = "content\nwith newline";
+		$actual = $this->migrator->strip_no_attr_tags( "<div>content\nwith newline</div>" );
+		$this->assertEquals( $expect, $actual );
+
+		$expect = '<div id="yup">content of div</div>';
+		$actual = $this->migrator->strip_no_attr_tags( '<div id="yup">content of div</div>' );
+		$this->assertEquals( $expect, $actual );
+
+		$expect = 'content of div';
+		$actual = $this->migrator->strip_no_attr_tags( '<span>content of div</span>' );
+		$this->assertEquals( $expect, $actual );
+
+		$expect = "content\nwith newline\n\ntest still";
+		$actual = $this->migrator->strip_no_attr_tags( "<div>content\nwith newline</div><div>test still</div>" );
+		$this->assertEquals( $expect, $actual );
+	}
+
+	public function test_hugo_figure() {
+		$input = '<a href="http://twitpic.com/dcx0xd"><img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " /></a> Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.';
+		$expected = '{{< figure link="http://twitpic.com/dcx0xd" src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc" caption="Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect." >}}';
+		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
+
+		$input = '<img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " />Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.';
+		$expected = '{{< figure src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc" caption="Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect." >}}';
+		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
+
+		$input = '<img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " />';
+		$expected = '{{< figure src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc" >}}';
+		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
+
+		$input = '<img alt="@nypl_stereo is in da house #hhnyc " />Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.';
+		$expected = '';
+		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
+	}
 }

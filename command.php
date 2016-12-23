@@ -25,6 +25,12 @@ if ( ! class_exists( 'WP_CLI' ) ) {
  */
 class HH_Hugo_Command extends WP_CLI_Command {
 
+	/**
+	 * current value of `paged` argument for check_links()
+	 */
+	protected $paged = 1;
+	protected $query;
+
 	protected $deactivate_plugins = array(
 		'w3-total-cache',
 		'wordpress-seo',
@@ -68,7 +74,7 @@ class HH_Hugo_Command extends WP_CLI_Command {
 		$verbose = isset( $assoc_args['verbose'] );
 		$dry_run = isset( $assoc_args['dry-run'] );
 
-		// Convert to array if called internally with single post
+		// Convert to array
 		$posts = explode( ',', $args[0] );
 
 		foreach ( $posts as $post ) {
@@ -81,6 +87,66 @@ class HH_Hugo_Command extends WP_CLI_Command {
 			} elseif ( 'success' !== array_keys( $result )[0] ) {
 				WP_CLI::warning( array_values( $result )[0] );
 			}
+		}
+	}
+
+	/**
+	 * Migrate all items from WP `post` post type to Hugo `blog` section
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--verbose]
+	 * : Print extra output
+	 *
+	 * [--dry-run]
+	 * : Run without touching any Markdown files
+	 */
+	function migrate_posts( $args, $assoc_args ) {
+		$verbose = isset( $assoc_args['verbose'] );
+		$dry_run = isset( $assoc_args['dry-run'] );
+
+		$this->query = new WP_Query( array(
+			'fields' => 'ids',
+			'posts_per_page' => 500,
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'paged' => $this->paged,
+		) );
+
+		foreach ( $this->query->posts as $post ) {
+			$this->migrate_post( array( $post ), $assoc_args, $false );
+		}
+
+		// increment pagination and run again if needed
+		if ( 500 === count( $this->query->posts ) ) {
+			$this->paged++;
+			$this->migrate_posts( $args, $assoc_args );
+		}
+	}
+
+	/**
+	 * Print post_content transformed to Markdown
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>
+	 * : WordPress post ID or comma-separated list of IDs to migrate
+	 *
+	 * ## EXAMPLES
+	 *
+	 * wp hh-hugo markdown 123
+	 */
+	function markdown( $args ) {
+		// Convert to array
+		$posts = explode( ',', $args[0] );
+
+		foreach ( $posts as $post ) {
+			$migrated = new HH_Hugo\Migrate_Post( $post, true );
+			WP_CLI::line( sprintf(
+				"\n------------------\nMarkdown for post %s\n------------------\n%s",
+				$post,
+				$migrated->get( 'markdown' )
+			) );
 		}
 	}
 
