@@ -25,7 +25,8 @@ class Write_File {
 			return $this;
 		}
 
-		$this->root_dir = HH_HUGO_COMMAND_DIR . '/hugo-content';
+		$content_dir = defined( 'HH_HUGO_UNIT_TESTS_RUNNING' ) ? 'hugo-content-test' : 'hugo-content';
+		$this->root_dir = trailingslashit( HH_HUGO_COMMAND_DIR ) . $content_dir;
 		$this->content = $front_matter . "\n" . $markdown;
 		$this->file_rel_dir = $this->get_rel_dir( $date, $this->blog_depth, $this->root_dir );
 
