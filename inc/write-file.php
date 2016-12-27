@@ -1,7 +1,6 @@
 <?php
 
 namespace HH_Hugo;
-use HH_Hugo\Write_File;
 
 class Write_File {
 

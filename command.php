@@ -102,8 +102,6 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	 * : Run without touching any Markdown files
 	 */
 	function migrate_posts( $args, $assoc_args ) {
-		$verbose = isset( $assoc_args['verbose'] );
-		$dry_run = isset( $assoc_args['dry-run'] );
 
 		$this->query = new WP_Query( array(
 			'fields' => 'ids',
@@ -114,6 +112,8 @@ class HH_Hugo_Command extends WP_CLI_Command {
 		) );
 
 		foreach ( $this->query->posts as $post ) {
+			// If --verbose and --dry-run are set,
+			// they are passed directly to migrate_post() here
 			$this->migrate_post( array( $post ), $assoc_args, $false );
 		}
 
@@ -160,7 +160,7 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	function delete_content_dir( $args, $assoc_args ) {
 		WP_CLI::confirm( 'Are you sure you want to delete the hugo-content directory?' );
 		$path = HH_HUGO_COMMAND_DIR . '/hugo-content';
-		exec( 'rm -rf ' . $path );
+		exec( 'rm -rf ' . escapeshellarg( $path ) );
 		WP_CLI::success( 'Deleted hugo-content directory' );
 	}
 }

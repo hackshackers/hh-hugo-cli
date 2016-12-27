@@ -3,7 +3,6 @@
  * Class to migrate from WP post -> Hugo blog
  */
 namespace HH_Hugo;
-use HH_Hugo\Migrate_Post;
 
 class Migrate_Post {
 
