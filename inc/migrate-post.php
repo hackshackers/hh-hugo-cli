@@ -270,9 +270,15 @@ class Migrate_Post {
 			return $this->hugo_shortcode( 'vimeo', $id );
 		} );
 
-		/**
-		 * @todo handle quote, caption
-		 */
+		// Use `<blockquote>` which then gets coverted to `> Lorem ipsum` by Markdownify
+		add_shortcode( 'quote', function( $atts ) {
+			$id = isset( $atts['id'] ) ? $atts['id'] : $this->post->ID;
+			$pullquote = get_post_meta( $id, 'quote', true );
+			if ( empty( $pullquote ) ) {
+				return '';
+			}
+			return '<blockquote>' . esc_html( $pullquote ) . '</blockquote>';
+		} );
 
 		add_shortcode( 'caption', function( $atts, $content ) {
 			return $this->hugo_figure( $content );

@@ -112,6 +112,21 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_quote_shortcode() {
+		update_post_meta( $this->posts[0], 'quote', 'Lorem ipsum' );
+		$expected = '<blockquote>Lorem ipsum</blockquote>';
+		$content = sprintf( '[quote id="%d"]', $this->posts[0] );
+		$actual = $this->migrator->convert_shortcodes( $content );
+		$markdown = $this->migrator->transform_post_content( $content );
+
+		$this->assertEquals( $expected, $actual );
+		$this->assertEquals( '> Lorem ipsum', $markdown );
+
+		$expected = '';
+		$actual = $this->migrator->convert_shortcodes( sprintf( '[quote id="%d"]', $this->posts[1] ) );
+		$this->assertEquals( $expected, $actual );
+	}
+
 	public function test_filter_markdown() {
 		// empty line, line break in linked image, local domain
 		$input = "foo\n  \nbar[\n![img...[http://hackshackers.alley.dev/]";
