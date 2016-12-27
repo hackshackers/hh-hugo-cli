@@ -19,8 +19,7 @@ class HH_Hugo_Test_Images extends WP_UnitTestCase {
 	public function test_image_conversion() {
 		$expected = $this->_get_test_data( 'expect', 'images.md' );
 		$input = $this->_get_test_data( 'test', 'images.html' );
-		$actual = $this->migrator->convert_shortcodes( $input );
-		$actual = $this->migrator->convert_image_to_hugo_figure( $actual );
+		$actual = $this->migrator->transform_post_content( $input );
 		$this->assertEquals( $expected, $actual );
 	}
 }

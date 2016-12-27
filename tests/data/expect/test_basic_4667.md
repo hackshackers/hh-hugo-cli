@@ -2,7 +2,7 @@ Hacks/Hackers has grown in ways we never predicted. It was just over two years a
 
 We’ve long sought to bring everyone together and enable journalists and technologists to connect regardless of their geographic location. We also want to make sure Hacks/Hackers survives as a sustainable movement long into the future. To make that happen, [we’re applying for the latest Knight News Challenge to connect and grow the Hacks/Hackers network][2]. 
 
-[![][3]][4]
+{{< figure link="http://hackshackers.com/blog/2012/03/22/were-taking-hackshackers-to-the-next-level-applying-for-the-knight-news-challenge/knight/" src="http://hackshackers.com/wp-content/uploads/2012/03/knight.png" >}}
 
 We want to help people to connect online to collaborate, making the network stronger as a collective with the wisdom of all hacks and hackers. And we would like to bring together people from across the world for an in-person gathering at some point early next year for the first-ever global Hacks/Hackers unconference.
 
@@ -16,5 +16,3 @@ Burt Herman, Jennifer 8. Lee, Chrys Wu
 
  [1]: http://hackshackers.meetup.com/
  [2]: http://newschallenge.tumblr.com/post/19479493999/connecting-the-global-hacks-hackers-network
- [3]: http://hackshackers.com/wp-content/uploads/2012/03/knight.png "Knight News Challenge"
- [4]: http://hackshackers.com/blog/2012/03/22/were-taking-hackshackers-to-the-next-level-applying-for-the-knight-news-challenge/knight/

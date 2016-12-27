@@ -86,6 +86,10 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 		$output = "hi\n\n{{< tweet 804429947406286848 >}}\n{{< tweet 806587782705664005 >}}";
 		$this->assertEquals( $output, $this->migrator->convert_link_embeds( $input ) );
 
+		$expected = '{{< youtube tV175PYFgJg >}}';
+		$input = 'http://www.youtube.com/watch?v=tV175PYFgJg';
+		$this->assertEquals( $expected, $this->migrator->convert_link_embeds( $input ) );
+
 		// these should not be converted
 		$input = 'The url is http://twitter.com/HacksHackers/status/804429947406286848';
 		$this->assertEquals( $input, $this->migrator->convert_link_embeds( $input ) );
@@ -194,15 +198,15 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 
 	public function test_hugo_figure() {
 		$input = $this->migrator->parse_hugo_figure_args( '<a href="http://twitpic.com/dcx0xd"><img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " /></a> Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.' );
-		$expected = "{{< figure\n  link=\"http://twitpic.com/dcx0xd\"\n  src=\"//twitpic.com/show/thumb/dcx0xd.jpg\"\n  alt=\"@nypl_stereo is in da house #hhnyc\"\n  caption=\"Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.\"\n>}}";
+		$expected = "{{< figure\n  link=\"http://twitpic.com/dcx0xd\"\n  src=\"//twitpic.com/show/thumb/dcx0xd.jpg\"\n  alt=\"@nypl_stereo is in da house #hhnyc\"\n  caption=\"Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.\"\n>}}\n\n";
 		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
 
 		$input = $this->migrator->parse_hugo_figure_args( '<img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " />Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.' );
-		$expected = "{{< figure\n  src=\"//twitpic.com/show/thumb/dcx0xd.jpg\"\n  alt=\"@nypl_stereo is in da house #hhnyc\"\n  caption=\"Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.\"\n>}}";
+		$expected = "{{< figure\n  src=\"//twitpic.com/show/thumb/dcx0xd.jpg\"\n  alt=\"@nypl_stereo is in da house #hhnyc\"\n  caption=\"Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.\"\n>}}\n\n";
 		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
 
 		$input = $this->migrator->parse_hugo_figure_args( '<img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " />' );
-		$expected = "{{< figure\n  src=\"//twitpic.com/show/thumb/dcx0xd.jpg\"\n  alt=\"@nypl_stereo is in da house #hhnyc\"\n>}}";
+		$expected = "{{< figure\n  src=\"//twitpic.com/show/thumb/dcx0xd.jpg\"\n  alt=\"@nypl_stereo is in da house #hhnyc\"\n>}}\n\n";
 		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
 
 		$input = $this->migrator->parse_hugo_figure_args( '<img alt="@nypl_stereo is in da house #hhnyc " />Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.' );

@@ -21,12 +21,20 @@ class Migrate_Post {
 	 */
 	protected $front_matter_src = array();
 
+	/**
+	 * @var Local env domain to be replaced in content output
+	 */
 	protected $local_domain = 'hackshackers.alley.dev';
 
 	/**
-	 * Regex for parsing linked images
+	 * @var Regex for parsing linked images
 	 */
-	protected $img_regex_pattern = '/(?:<a href="([^"]+)">\s*?)?<img src="([^"]+)" ?(?:alt="([^"]+)")? ?\/>(?:\s*?<\/a>)?/';
+	protected $img_regex_pattern = '/(?:<a href="([^"]+)">\s*?)?<img (?:title=".*?" )?src="([^"]+)" ?(?:alt="([^"]*)")? ?\/>(?:\s*?<\/a>)?/';
+
+	/**
+	 * @var Max number of HTML tags to allow in Markdown output
+	 */
+	protected $max_html_tags = 0;
 
 	/**
 	 * get started
@@ -55,7 +63,7 @@ class Migrate_Post {
 
 		// Check content for excessive HTML tags, flag for manual inspection
 		$this->num_tags = $this->count_tags( $this->markdown );
-		if ( 10 < $this->num_tags ) {
+		if ( $this->max_html_tags < $this->num_tags ) {
 			$this->result = array( 'error' => sprintf( 'Markdown for post %s contains %s HTML tags; manual inspection required.', $this->post->ID, $this->num_tags ) );
 			return;
 		}
@@ -182,8 +190,11 @@ class Migrate_Post {
 		// trim lines that are just white space or end with &nbsp;
 		$markdown = preg_replace( array( '/\n\s+\n/', '/\n?\s*&nbsp;\s*(\n|$)/' ), "\n\n", $markdown );
 
-		// fix line breaks with linked images
+		// fix line breaks with linked images if any weren't migrated to Hugo figure
 		$markdown = preg_replace( '/\[\n+\!/', "\n\n[!", $markdown );
+
+		// ensure line breaks before/after {{< figure >}}
+		$markdown = preg_replace( '/(?!^)(\n{0,2}){{< figure/', "\n\n{{< figure", $markdown );
 
 		return $markdown;
 	}
@@ -215,8 +226,8 @@ class Migrate_Post {
 
 		// disallow attrs
 		foreach ( $allowed as &$tag ) {
-			$tag['style'] = false;
-			$tag['class'] = false;
+			// $tag['style'] = false;
+			// $tag['class'] = false;
 			$tag['dir'] = false;
 		}
 
@@ -247,6 +258,7 @@ class Migrate_Post {
 					break;
 
 				case 'youtube.com':
+				case 'www.youtube.com':
 				case 'youtu.be':
 					$replace = $this->hugo_shortcode( 'youtube', $link, true );
 					break;
@@ -349,7 +361,7 @@ class Migrate_Post {
 			}
 		}
 
-		return $output . '>}}';
+		return $output . ">}}\n\n";
 	}
 
 	/**
