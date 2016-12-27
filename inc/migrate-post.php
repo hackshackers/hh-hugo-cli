@@ -24,6 +24,11 @@ class Migrate_Post {
 	protected $local_domain = 'hackshackers.alley.dev';
 
 	/**
+	 * Regex for parsing linked images
+	 */
+	protected $img_regex_pattern = '/(?:<a href="([^"]+)">\s*?)?<img src="([^"]+)" ?(?:alt="([^"]+)")? ?\/>(?:\s*?<\/a>)?/';
+
+	/**
 	 * get started
 	 *
 	 * @param int|WP_Post $post Post to migrate
@@ -142,6 +147,7 @@ class Migrate_Post {
 		// embed URLs and shortcodes to Hugo format
 		$content = $this->convert_link_embeds( $content );
 		$content = $this->convert_shortcodes( $content );
+		$content = $this->convert_image_to_hugo_figure( $content );
 
 		// apply WP content filters
 		$content = apply_filters( 'the_content', $content );
@@ -289,10 +295,32 @@ class Migrate_Post {
 		return $content;
 	}
 
+	/**
+	 * Convert images in markup to hugo figure shortcode
+	 */
+	public function convert_image_to_hugo_figure( $content ) {
+		return preg_replace_callback( $this->img_regex_pattern, array( $this, '_convert_image_callback' ), $content );
+	}
+
+	/**
+	 * convert single image, not from [caption] shortcode
+	 */
+	public function _convert_image_callback( $matches ) {
+		$hugo_args['link'] = ! empty( $matches[1] ) ? $matches[1] : null;
+		$hugo_args['src'] = ! empty( $matches[2] ) ? $matches[2] : null;
+		$hugo_args['alt'] = ! empty( $matches[3] ) ? trim( $matches[3] ) : null;
+		return $this->hugo_figure( $hugo_args );
+	}
+
+	/**
+	 * parse args for hugo figure shortcode from WP [caption] shortcode
+	 */
 	public function parse_hugo_figure_args( $content ) {
 		$hugo_args = array();
 
-		$pattern = '/(?:<a href="([^"]+)">)?<img src="([^"]+)" ?(?:alt="([^"]+)")? ?\/>\s*(?:<\/a>)?(.+)?/';
+		// add capture group for image caption
+		$pattern = rtrim( $this->img_regex_pattern, '/' ) . '(.+)?/';
+
 		if ( ! preg_match( $pattern, $content, $matches ) ) {
 			return $hugo_args;
 		}
@@ -314,10 +342,10 @@ class Migrate_Post {
 			return '';
 		}
 
-		$output = '{{< figure ';
+		$output = "{{< figure\n";
 		foreach ( $args as $key => $value ) {
 			if ( $value ) {
-				$output .= $key . '="' . $value . '" ';
+				$output .= sprintf( "  %s=\"%s\"\n", $key, $value );
 			}
 		}
 
