@@ -193,19 +193,19 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 	}
 
 	public function test_hugo_figure() {
-		$input = '<a href="http://twitpic.com/dcx0xd"><img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " /></a> Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.';
+		$input = $this->migrator->parse_hugo_figure_args( '<a href="http://twitpic.com/dcx0xd"><img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " /></a> Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.' );
 		$expected = '{{< figure link="http://twitpic.com/dcx0xd" src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc" caption="Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect." >}}';
 		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
 
-		$input = '<img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " />Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.';
+		$input = $this->migrator->parse_hugo_figure_args( '<img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " />Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.' );
 		$expected = '{{< figure src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc" caption="Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect." >}}';
 		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
 
-		$input = '<img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " />';
+		$input = $this->migrator->parse_hugo_figure_args( '<img src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc " />' );
 		$expected = '{{< figure src="//twitpic.com/show/thumb/dcx0xd.jpg" alt="@nypl_stereo is in da house #hhnyc" >}}';
 		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
 
-		$input = '<img alt="@nypl_stereo is in da house #hhnyc " />Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.';
+		$input = $this->migrator->parse_hugo_figure_args( '<img alt="@nypl_stereo is in da house #hhnyc " />Hacks/Hackers needed 3D glasses to get the full Stereogranimator effect.' );
 		$expected = '';
 		$this->assertEquals( $expected, $this->migrator->hugo_figure( $input ) );
 	}

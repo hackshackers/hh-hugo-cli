@@ -281,31 +281,41 @@ class Migrate_Post {
 		} );
 
 		add_shortcode( 'caption', function( $atts, $content ) {
-			return $this->hugo_figure( $content );
+			$args = $this->parse_hugo_figure_args( $content );
+			return $this->hugo_figure( $args );
 		} );
 
 		$content = do_shortcode( $content );
 		return $content;
 	}
 
-	public function hugo_figure( $caption_inner ) {
+	public function parse_hugo_figure_args( $content ) {
+		$hugo_args = array();
+
 		$pattern = '/(?:<a href="([^"]+)">)?<img src="([^"]+)" ?(?:alt="([^"]+)")? ?\/>\s*(?:<\/a>)?(.+)?/';
-		if ( ! preg_match( $pattern, $caption_inner, $matches ) ) {
-			return;
+		if ( ! preg_match( $pattern, $content, $matches ) ) {
+			return $hugo_args;
 		}
 
-		$hugo_atts = array();
-		$hugo_atts['link'] = ! empty( $matches[1] ) ? $matches[1] : null;
-		$hugo_atts['src'] = ! empty( $matches[2] ) ? $matches[2] : null;
-		$hugo_atts['alt'] = ! empty( $matches[3] ) ? trim( $matches[3] ) : null;
-		$hugo_atts['caption'] = ! empty( $matches[4] ) ? trim( $matches[4] ) : null;
+		$hugo_args['link'] = ! empty( $matches[1] ) ? $matches[1] : null;
+		$hugo_args['src'] = ! empty( $matches[2] ) ? $matches[2] : null;
+		$hugo_args['alt'] = ! empty( $matches[3] ) ? trim( $matches[3] ) : null;
+		$hugo_args['caption'] = ! empty( $matches[4] ) ? trim( $matches[4] ) : null;
 
-		if ( ! $hugo_atts['src'] ) {
+		return $hugo_args;
+	}
+
+	/**
+	 * Convert WP image shortcode embeds to Hugo figure shortcode
+	 */
+	public function hugo_figure( $args ) {
+
+		if ( empty( $args['src'] ) ) {
 			return '';
 		}
 
 		$output = '{{< figure ';
-		foreach ( $hugo_atts as $key => $value ) {
+		foreach ( $args as $key => $value ) {
 			if ( $value ) {
 				$output .= $key . '="' . $value . '" ';
 			}
