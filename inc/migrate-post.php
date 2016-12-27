@@ -165,7 +165,6 @@ class Migrate_Post {
 
 	/**
 	 * Handle some known gotchas in WP -> Markdown
-	 * @todo unit testing for this method
 	 */
 	public function filter_markdown( $markdown ) {
 		// Update links
@@ -175,10 +174,10 @@ class Migrate_Post {
 		$markdown = preg_replace( array( '/<!--End mc_embed_signup-->/', "/<div id=\"mc_embed_signup\">[\s\n]*<\/div>/" ), '', $markdown );
 
 		// trim lines that are just white space or end with &nbsp;
-		$markdown = preg_replace( array( "/\n\s+\n/", "/\n?\s*&nbsp;\s*(\n|$)/" ), "\n\n", $markdown );
+		$markdown = preg_replace( array( '/\n\s+\n/', '/\n?\s*&nbsp;\s*(\n|$)/' ), "\n\n", $markdown );
 
 		// fix line breaks with linked images
-		$markdown = preg_replace( "/\[\n+\!/", "\n\n[!", $markdown );
+		$markdown = preg_replace( '/\[\n+\!/', "\n\n[!", $markdown );
 
 		return $markdown;
 	}
