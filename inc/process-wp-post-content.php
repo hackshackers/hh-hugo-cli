@@ -34,6 +34,11 @@ class Process_WP_Post_Content {
 		'div', // Markdown also handles divs
 	);
 
+	/**
+	 * Getter for processed content
+	 *
+	 * @return string
+	 */
 	public function output() {
 		return $this->content;
 	}
@@ -65,6 +70,9 @@ class Process_WP_Post_Content {
 	/**
 	 * Disallow the most common HTML element attributes that would prevent
 	 * post_content from being cleanly translated to Markdown
+	 *
+	 * @param string $content
+	 * @return string Content with disallowed attributes and tags removed
 	 */
 	public function kses( $content ) {
 		$allowed = wp_kses_allowed_html( 'post' );
@@ -138,7 +146,10 @@ class Process_WP_Post_Content {
 	}
 
 	/**
-	 * Convert Jetpack media embeds and other shortcodes
+	 * Convert shortcodes in post_content
+	 *
+	 * @param string $content
+	 * @return string Content with shortcodes replaced
 	 */
 	public function convert_shortcodes( $content ) {
 		// Override Jetpack shortcodes
@@ -178,6 +189,9 @@ class Process_WP_Post_Content {
 
 	/**
 	 * Convert images in markup to hugo figure shortcode
+	 *
+	 * @param string $content HTML input
+	 * @return string HTML with all images converted to Hugo {{< figure >}} shortcode
 	 */
 	public function convert_image_to_hugo_figure( $content ) {
 		return preg_replace_callback( $this->img_regex_pattern, array( $this, '_convert_image_callback' ), $content );
@@ -185,6 +199,9 @@ class Process_WP_Post_Content {
 
 	/**
 	 * convert single image, not from [caption] shortcode
+	 *
+	 * @param array $matches Result of regex
+	 * @return string Hugo figure shortcode
 	 */
 	public function _convert_image_callback( $matches ) {
 		$hugo_args['link'] = ! empty( $matches[1] ) ? $matches[1] : null;
@@ -194,6 +211,9 @@ class Process_WP_Post_Content {
 	}
 	/**
 	 * parse args for hugo figure shortcode from WP [caption] shortcode
+	 *
+	 * @param string $content Content of [caption] shortcode
+	 * @return array 'link', 'src', 'alt', 'caption' from shortcode content
 	 */
 	public function parse_hugo_figure_args( $content ) {
 		$hugo_args = array();
@@ -215,6 +235,12 @@ class Process_WP_Post_Content {
 
 	/**
 	 * Convert WP image shortcode embeds to Hugo figure shortcode
+	 * @param array $args
+	 *		string 'link' URL to link image to
+	 *		string 'src' URL of image, required
+	 *		string 'alt' Image alt text
+	 *		string 'caption' Figure caption
+	 * @return string Hugo {{< figure ... >}} shortcode
 	 */
 	public function hugo_figure( $args ) {
 
@@ -258,7 +284,10 @@ class Process_WP_Post_Content {
 	}
 
 	/**
-	 * Remove any empty tags without attributes
+	 * Remove any empty tags without attributes, e.g. `<div></div>`
+	 *
+	 * @param string $content
+	 * @return string Content with empty tags removed
 	 */
 	public function strip_empty_tags( $content ) {
 		return preg_replace( '/<([a-z][\w]*) ?><\\/\\1>/', '', $content );

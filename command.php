@@ -50,6 +50,12 @@ class HH_Hugo_Command extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * Test if a plugin is active using WP-CLI
+	 *
+	 * @param string $plugin Name of plugin
+	 * @return bool
+	 */
 	private function _cli_plugin_is_active( $plugin ) {
 		$stdout = WP_CLI::runcommand( 'plugin status ' . $plugin, array( 'return' => 'all' ) )->stdout;
 		return false !== strpos( $stdout, 'Status: Active' );
@@ -170,22 +176,6 @@ class HH_Hugo_Command extends WP_CLI_Command {
 		$path = HH_HUGO_COMMAND_DIR . '/hugo-content';
 		exec( 'rm -rf ' . escapeshellarg( $path ) );
 		WP_CLI::success( 'Deleted hugo-content directory' );
-	}
-
-	function count_tags_atts() {
-		$html = file_get_contents( HH_HUGO_COMMAND_DIR . '/html_text.txt' );
-		preg_replace_callback( '/<([a-zA-Z0-9]+) ?(?:(>|class|style)="([^"]+)"?)*>/', function( $matches ) {
-			$i = array_search( $matches[0], $this->tags );
-			if ( false === $i ) {
-				$this->tags[] = $matches[0];
-				$this->counters[] = array( 'tag' => $matches[1], 'att' => $matches[2], 'value' => $matches[3], 'count' => 1 );
-			} else {
-				$this->counters[ $i ]['count']++;
-			}
-
-		},  $html );
-
-		WP_CLI\Utils\format_items( 'csv', $this->counters, array( 'tag', 'att', 'value', 'count' ) );
 	}
 }
 

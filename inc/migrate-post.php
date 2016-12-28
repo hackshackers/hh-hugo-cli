@@ -79,6 +79,12 @@ class Migrate_Post {
 		$this->result = array( 'success' => sprintf( 'Migrated post %s to %s', $this->post->ID, $file->get( 'output' ) ) );
 	}
 
+	/**
+	 * Getter
+	 *
+	 * @param string $key
+	 * @return any|null Return value of null if key isn't set
+	 */
 	public function get( $key ) {
 		return isset( $this->$key ) ? $this->$key : null;
 	}
