@@ -7,7 +7,12 @@ namespace HH_Hugo;
 class Migrate_Images {
 
 	/**
-	 * @var array Image data found in this conntent
+	 * @var array Image data found in this content, each will have
+	 *		'url' string
+	 * 		'year' string
+	 *		'month' string
+	 *		'filename' string
+	 * 		'result' bool
 	 */
 	protected $images = array();
 
@@ -41,9 +46,8 @@ class Migrate_Images {
 	 *
 	 * @param string $markdown Markdown content to parse for migratable images
 	 * @param bool $dry_run If true, mock migration only. Defaults to false.
-	 * @param int $id Optional WordPress ID of post being migrated
 	 */
-	function __construct( $markdown, $dry_run = false, $id = null ) {
+	function __construct( $markdown, $dry_run = false ) {
 		$content_dir = defined( 'HH_HUGO_UNIT_TESTS_RUNNING' ) ? 'hugo-images-test' : 'hugo-images';
 		$this->dest_dir = trailingslashit( HH_HUGO_COMMAND_DIR ) . $content_dir;
 		$this->source_dir = wp_upload_dir()['basedir'];
@@ -59,15 +63,17 @@ class Migrate_Images {
 		}
 		$this->images = $images;
 
+
 		foreach ( $this->images as &$image ) {
 			if ( $this->should_migrate_image( $image ) ) {
-				$image['success'] = $dry_run ? true : $this->migrate_image( $image );
-				if ( $image['success'] ) {
+				$image['result'] = $dry_run ? 'success' : $this->migrate_image( $image, $dry_run );
+				if ( 'success' === $image['result'] ) {
 					$this->results['success']++;
 				} else {
 					$this->results['error']++;
 				}
 			} else {
+				$image['result'] = 'skip';
 				$this->results['skip']++;
 			}
 		}
@@ -151,15 +157,21 @@ class Migrate_Images {
 	 * Copy the image file
 	 *
 	 * @param array $image Image data
-	 * @return bool Success/failure
+	 * @param bool $dry_run Defaults to false, if true then simulate copying image
+	 * @return string 'success' or 'error'
 	 */
-	public function migrate_image( $image ) {
+	public function migrate_image( $image, $dry_run = false ) {
+		if ( $dry_run ) {
+			return 'success';
+		}
+
 		// make dest dir if needed
 		$dest_dir = str_replace( '/' . $image['filename'], '', $this->image_path( $image, 'dest' ) );
 		if ( ! is_dir( $dest_dir ) ) {
 			mkdir( $dest_dir, 0755, true );
 		}
 
-		return copy( $this->image_path( $image, 'src' ), $this->image_path( $image, 'dest' ) );
+		$copied = copy( $this->image_path( $image, 'src' ), $this->image_path( $image, 'dest' ) );
+		return $copied ? 'success' : 'error';
 	}
 }

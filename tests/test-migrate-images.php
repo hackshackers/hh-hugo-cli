@@ -136,8 +136,8 @@ class HH_Hugo_Test_Migrate_Images extends WP_UnitTestCase {
 	}
 
 	function test_migrate_image() {
-		$this->assertTrue( $this->migrator->migrate_image( $this->test_images['new-year'] ) );
-		$this->assertTrue( $this->migrator->migrate_image( $this->test_images['new-month'] ) );
-		$this->assertTrue( $this->migrator->migrate_image( $this->test_images['new-filename'] ) );
+		$this->assertEquals( 'success', $this->migrator->migrate_image( $this->test_images['new-year'] ) );
+		$this->assertEquals( 'success', $this->migrator->migrate_image( $this->test_images['new-month'] ) );
+		$this->assertEquals( 'success', $this->migrator->migrate_image( $this->test_images['new-filename'] ) );
 	}
 }
