@@ -89,6 +89,9 @@ class HH_Hugo_Command extends WP_CLI_Command {
 				WP_CLI::line( array_values( $result )[0] );
 			} elseif ( 'success' !== array_keys( $result )[0] ) {
 				WP_CLI::warning( array_values( $result )[0] );
+				if ( $verbose ) {
+					$this->markdown( array( $post ) );
+				}
 			}
 		}
 	}
