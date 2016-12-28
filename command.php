@@ -153,6 +153,8 @@ class HH_Hugo_Command extends WP_CLI_Command {
 				$post,
 				$migrated->get( 'markdown' )
 			) );
+
+			WP_CLI::line( "------------------\n" . implode( "\n", $migrated->get( 'tags_output' ) ) . "\n" );
 		}
 	}
 

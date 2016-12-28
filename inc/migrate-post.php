@@ -32,6 +32,11 @@ class Migrate_Post {
 	protected $max_html_tags = 0;
 
 	/**
+	 * @var array List of remaining HTML tags that we could log
+	 */
+	protected $tags_output = array();
+
+	/**
 	 * get started
 	 *
 	 * @param int|WP_Post $post Post to migrate
@@ -90,9 +95,10 @@ class Migrate_Post {
 		// split string by html opening tags, doesn't need to be exact
 		$count = count( preg_split( $pattern, $input ) );
 
-		if ( 20 > $count && class_exists( '\\WP_CLI' ) ) {
+		// If there's no crazy markup, show us what we might want to fix manually
+		if ( 30 > $count ) {
 			preg_replace_callback( $pattern, function( $matches ) {
-				\WP_CLI::line( $this->post->ID . ': ' . $matches[0] );
+				$this->tags_output[] = $matches[0];
 			}, $input );
 		}
 
@@ -169,7 +175,11 @@ class Migrate_Post {
 		$markdown = str_replace( $this->local_domain, 'hackshackers.com', $markdown );
 
 		// remove empty mailchimp embeds
-		$markdown = preg_replace( array( '/<!--End mc_embed_signup-->/', "/<div id=\"mc_embed_signup\">[\s\n]*<\/div>/" ), '', $markdown );
+		$markdown = preg_replace(
+			array( '/<!--End mc_embed_signup-->/', "/<div id=\"mc_embed_signup\">[\s\n]*<\/div>/" ),
+			'',
+			$markdown
+		);
 
 		// trim lines that are just white space or end with &nbsp;
 		$markdown = preg_replace( array( '/\n\s+\n/', '/\n?\s*&nbsp;\s*(\n|$)/' ), "\n\n", $markdown );
@@ -179,6 +189,9 @@ class Migrate_Post {
 
 		// ensure line breaks before/after {{< figure >}}
 		$markdown = preg_replace( '/(?!^)(\n{0,2}){{< figure/', "\n\n{{< figure", $markdown );
+
+		// collapse excess line breaks
+		$markdown = preg_replace( '/\n{3,}/', "\n\n", $markdown );
 
 		return $markdown;
 	}
