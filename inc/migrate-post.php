@@ -29,7 +29,7 @@ class Migrate_Post {
 	/**
 	 * @var Max number of HTML tags to allow in Markdown output
 	 */
-	protected $max_html_tags = 0;
+	protected $max_html_tags = 10;
 
 	/**
 	 * @var array List of remaining HTML tags that we could log
