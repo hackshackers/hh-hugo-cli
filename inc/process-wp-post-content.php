@@ -162,6 +162,12 @@ class Process_WP_Post_Content {
 			return $this->hugo_figure( $args );
 		} );
 
+		add_shortcode( 'googlemaps', function( $atts ) {
+			$url = urldecode( $atts[0] );
+			$url = preg_replace( '/&w=\d+&h=\d+]/', ']', $url );
+			return '{{< iframe src="' . $url . '" width="100%" height="250px" >}}';
+		} );
+
 		$content = do_shortcode( $content );
 		return $content;
 	}
