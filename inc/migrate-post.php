@@ -21,7 +21,20 @@ class Migrate_Post {
 	 */
 	protected $front_matter_src = array();
 
+	/**
+	 * @var Local env domain to be replaced in content output
+	 */
 	protected $local_domain = 'hackshackers.alley.dev';
+
+	/**
+	 * @var Max number of HTML tags to allow in Markdown output
+	 */
+	protected $max_html_tags = 0;
+
+	/**
+	 * @var array List of remaining HTML tags that we could log
+	 */
+	protected $tags_output = array();
 
 	/**
 	 * get started
@@ -46,11 +59,11 @@ class Migrate_Post {
 		$this->slug = $this->post->post_name;
 		$this->front_matter_src = $this->extract_front_matter( $this->post );
 		$this->front_matter = $this->transform_front_matter( $this->front_matter_src );
-		$this->markdown = $this->transform_post_content( $this->post->post_content );
+		$this->markdown = $this->transform_post_content( $this->post->post_content, $this->post->ID );
 
 		// Check content for excessive HTML tags, flag for manual inspection
 		$this->num_tags = $this->count_tags( $this->markdown );
-		if ( 10 < $this->num_tags ) {
+		if ( $this->max_html_tags < $this->num_tags ) {
 			$this->result = array( 'error' => sprintf( 'Markdown for post %s contains %s HTML tags; manual inspection required.', $this->post->ID, $this->num_tags ) );
 			return;
 		}
@@ -66,6 +79,12 @@ class Migrate_Post {
 		$this->result = array( 'success' => sprintf( 'Migrated post %s to %s', $this->post->ID, $file->get( 'output' ) ) );
 	}
 
+	/**
+	 * Getter
+	 *
+	 * @param string $key
+	 * @return any|null Return value of null if key isn't set
+	 */
 	public function get( $key ) {
 		return isset( $this->$key ) ? $this->$key : null;
 	}
@@ -77,9 +96,17 @@ class Migrate_Post {
 	 * @param int
 	 */
 	public function count_tags( $input ) {
+		$pattern = '/<(?!http)[A-Z][A-Z0-9]*\b[^>]*>/i'; // exclude Markdown-style linked URLs
 
 		// split string by html opening tags, doesn't need to be exact
-		$count = count( preg_split( '/<([A-Z][A-Z0-9]*)\b[^>]*>/i', $input ) );
+		$count = count( preg_split( $pattern, $input ) );
+
+		// If there's no crazy markup, show us what we might want to fix manually
+		if ( 30 > $count ) {
+			preg_replace_callback( $pattern, function( $matches ) {
+				$this->tags_output[] = $matches[0];
+			}, $input );
+		}
 
 		return $count - 1;
 	}
@@ -131,36 +158,19 @@ class Migrate_Post {
 	 * Convert post_content to Markdown
 	 *
 	 * @param string $content Source content from post_content
+	 * @param int|null $id Post ID being transformed, or null if unknown
 	 * @return string Markdownified content
 	 */
-	public function transform_post_content( $content ) {
-
-		// strip extraneous attributes and make sure no one hard-coded any script tags, etc
-		$content = $this->kses( $content );
-		$content = $this->strip_no_attr_tags( $content );
-
-		// embed URLs and shortcodes to Hugo format
-		$content = $this->convert_link_embeds( $content );
-		$content = $this->convert_shortcodes( $content );
-
-		// apply WP content filters
-		$content = apply_filters( 'the_content', $content );
+	public function transform_post_content( $content, $id = null ) {
+		$processor = new Process_WP_Post_Content( $content, $id );
 
 		// Markdownify
 		$converter = new \Markdownify\Converter;
-		$markdown = $converter->parseString( $content );
+		$markdown = $converter->parseString( $processor->output() );
 
 		$markdown = $this->filter_markdown( $markdown );
 
 		return $markdown;
-	}
-
-	public function strip_no_attr_tags( $content ) {
-		// space out any divs that are next to each other
-		$content = preg_replace( '/<\/(div|p)><\1>/', "</\${1}>\n\n<\${1}>", $content );
-
-		// strip tags that don't have attributes
-		return preg_replace( '/<(div|span|p)>(.*?)<\/\1>/s', '${2}', $content );
 	}
 
 	/**
@@ -171,165 +181,24 @@ class Migrate_Post {
 		$markdown = str_replace( $this->local_domain, 'hackshackers.com', $markdown );
 
 		// remove empty mailchimp embeds
-		$markdown = preg_replace( array( '/<!--End mc_embed_signup-->/', "/<div id=\"mc_embed_signup\">[\s\n]*<\/div>/" ), '', $markdown );
+		$markdown = preg_replace(
+			array( '/<!--End mc_embed_signup-->/', "/<div id=\"mc_embed_signup\">[\s\n]*<\/div>/" ),
+			'',
+			$markdown
+		);
 
 		// trim lines that are just white space or end with &nbsp;
 		$markdown = preg_replace( array( '/\n\s+\n/', '/\n?\s*&nbsp;\s*(\n|$)/' ), "\n\n", $markdown );
 
-		// fix line breaks with linked images
+		// fix line breaks with linked images if any weren't migrated to Hugo figure
 		$markdown = preg_replace( '/\[\n+\!/', "\n\n[!", $markdown );
 
+		// ensure line breaks before/after {{< figure >}}
+		$markdown = preg_replace( '/(?!^)(\n{0,2}){{< figure/', "\n\n{{< figure", $markdown );
+
+		// collapse excess line breaks
+		$markdown = preg_replace( '/\n{3,}/', "\n\n", $markdown );
+
 		return $markdown;
-	}
-
-	/**
-	 * Disallow the most common HTML element attributes that would prevent
-	 * post_content from being cleanly translated to Markdown
-	 */
-	public function kses( $content ) {
-		$allowed = wp_kses_allowed_html( 'post' );
-
-		$allowed['img'] = array(
-			'src' => true,
-			'title' => true,
-			'alt' => true,
-		);
-		$allowed['a'] = array(
-			'href' => true,
-			'title' => true,
-			'alt' => true,
-		);
-
-		// disallow tags
-		foreach ( array( 'script' ) as $tagname ) {
-			if ( isset( $allowed[ $tagname ] ) ) {
-				unset( $allowed[ $tagname ] );
-			}
-		}
-
-		// disallow attrs
-		foreach ( $allowed as &$tag ) {
-			$tag['style'] = false;
-			$tag['class'] = false;
-			$tag['dir'] = false;
-		}
-
-		return wp_kses( $content, $allowed );
-	}
-
-	/**
-	 * Convert oEmbed link in post_content
-	 *
-	 * @param string $content
-	 * @return string
-	 */
-	public function convert_link_embeds( $content ) {
-		$embeds = \Jetpack_Media_Meta_Extractor::extract_from_content( $content );
-		if ( empty( $embeds['embed']['url'] ) ) {
-			return $content;
-		}
-
-		foreach ( array_unique( $embeds['embed']['url'] ) as $link ) {
-			// $link in format like twitter.com/HacksHackers/status/804429947406286848
-			$site = explode( '/', $link )[0];
-			$replace = null;
-
-			switch ( $site ) {
-				case 'twitter.com':
-				case 't.co':
-					$replace = $this->hugo_shortcode( 'tweet', $link, true );
-					break;
-
-				case 'youtube.com':
-				case 'youtu.be':
-					$replace = $this->hugo_shortcode( 'youtube', $link, true );
-					break;
-			}
-
-			if ( $replace ) {
-				// str_replace twice instead of regexp so we don't have to worry
-				// about escaping slashes, etc. in the link
-				$content = str_replace( 'http://' . $link, $replace, $content );
-				$content = str_replace( 'https://' . $link, $replace, $content );
-			}
-		}
-		return $content;
-	}
-
-	/**
-	 * Convert Jetpack media embeds and other shortcodes
-	 */
-	public function convert_shortcodes( $content ) {
-		// Override Jetpack shortcodes
-		add_shortcode( 'youtube', function( $atts ) {
-			return $this->hugo_shortcode( 'youtube', jetpack_get_youtube_id( $atts[0] ) );
-		} );
-
-		add_shortcode( 'vimeo', function( $atts ) {
-			$id = isset( $atts['id'] ) ? $atts['id'] : jetpack_shortcode_get_vimeo_id( $atts );
-			return $this->hugo_shortcode( 'vimeo', $id );
-		} );
-
-		/**
-		 * @todo handle quote, caption
-		 */
-
-		add_shortcode( 'caption', function( $atts, $content ) {
-			return $this->hugo_figure( $content );
-		} );
-
-		$content = do_shortcode( $content );
-		return $content;
-	}
-
-	public function hugo_figure( $caption_inner ) {
-		$pattern = '/(?:<a href="([^"]+)">)?<img src="([^"]+)" ?(?:alt="([^"]+)")? ?\/>\s*(?:<\/a>)?(.+)?/';
-		if ( ! preg_match( $pattern, $caption_inner, $matches ) ) {
-			return;
-		}
-
-		$hugo_atts = array();
-		$hugo_atts['link'] = ! empty( $matches[1] ) ? $matches[1] : null;
-		$hugo_atts['src'] = ! empty( $matches[2] ) ? $matches[2] : null;
-		$hugo_atts['alt'] = ! empty( $matches[3] ) ? trim( $matches[3] ) : null;
-		$hugo_atts['caption'] = ! empty( $matches[4] ) ? trim( $matches[4] ) : null;
-
-		if ( ! $hugo_atts['src'] ) {
-			return '';
-		}
-
-		$output = '{{< figure ';
-		foreach ( $hugo_atts as $key => $value ) {
-			if ( $value ) {
-				$output .= $key . '="' . $value . '" ';
-			}
-		}
-
-		return $output . '>}}';
-	}
-
-	/**
-	 * Generate Hugo shortcode, e.g. `{{< tweet 12341234 >}}`
-	 *
-	 * @param string $provider
-	 * @param string|int $id Can be id or link
-	 * @param bool $from_link If true, parse id from URL depending on provider
-	 */
-	public function hugo_shortcode( $provider, $id, $from_link = false ) {
-		// Convert URL to ID if needed
-		if ( $from_link ) {
-			if ( 'tweet' === $provider ) {
-				preg_match( '/status(?:es)?\/(\d+)\/?/', $id, $matches );
-				if ( empty( $matches ) ) {
-					return $id;
-				} else {
-					$id = $matches[1];
-				}
-			} else if ( 'youtube' === $provider ) {
-				$id = jetpack_get_youtube_id( $id );
-			}
-		}
-
-		return sprintf( '{{< %s %s >}}', $provider, $id );
 	}
 }

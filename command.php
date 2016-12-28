@@ -13,6 +13,7 @@ require_once( HH_HUGO_COMMAND_DIR . '/Markdownify/src/ConverterExtra.php' );
 
 // Migration classes
 require_once( HH_HUGO_COMMAND_DIR . '/inc/write-file.php' );
+require_once( HH_HUGO_COMMAND_DIR . '/inc/process-wp-post-content.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-post.php' );
 
 
@@ -24,6 +25,8 @@ if ( ! class_exists( 'WP_CLI' ) ) {
  * Commands for Hacks/Hackers WP -> Hugo migration
  */
 class HH_Hugo_Command extends WP_CLI_Command {
+	public $tags = array();
+	public $counters = array();
 
 	/**
 	 * current value of `paged` argument for check_links()
@@ -47,6 +50,12 @@ class HH_Hugo_Command extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * Test if a plugin is active using WP-CLI
+	 *
+	 * @param string $plugin Name of plugin
+	 * @return bool
+	 */
 	private function _cli_plugin_is_active( $plugin ) {
 		$stdout = WP_CLI::runcommand( 'plugin status ' . $plugin, array( 'return' => 'all' ) )->stdout;
 		return false !== strpos( $stdout, 'Status: Active' );
@@ -86,6 +95,9 @@ class HH_Hugo_Command extends WP_CLI_Command {
 				WP_CLI::line( array_values( $result )[0] );
 			} elseif ( 'success' !== array_keys( $result )[0] ) {
 				WP_CLI::warning( array_values( $result )[0] );
+				if ( $verbose ) {
+					$this->markdown( array( $post ) );
+				}
 			}
 		}
 	}
@@ -147,6 +159,8 @@ class HH_Hugo_Command extends WP_CLI_Command {
 				$post,
 				$migrated->get( 'markdown' )
 			) );
+
+			WP_CLI::line( "------------------\n" . implode( "\n", $migrated->get( 'tags_output' ) ) . "\n" );
 		}
 	}
 

@@ -1,16 +1,16 @@
-[![][1]][2]
+{{< figure link="http://awesomest.journalismparty.com/ever/" src="http://hackshackers.com/wp-content/uploads/2011/02/title.jpg" >}}
 
-Please join [Hacks/Hackers][3], [Online News Association][4], [Poynter Institute][5], [Association of Alternative Newsweeklies][6] [Vision Cloud][7], [Scribd][8], [Tableau Software][9] and more for a rockin&#8217; party during SXSW. It&#8217;s the [Awesomest Journalism Party. Ever.][2] Really. And you&#8217;re invited for music and fun with some of the most innovative journalists and developers in the country.
+Please join [Hacks/Hackers][1], [Online News Association][2], [Poynter Institute][3], [Association of Alternative Newsweeklies][4] [Vision Cloud][5], [Scribd][6], [Tableau Software][7] and more for a rockin&#8217; party during SXSW. It&#8217;s the [Awesomest Journalism Party. Ever.][8] Really. And you&#8217;re invited for music and fun with some of the most innovative journalists and developers in the country.
 
-Where: [The Marq][10], 422 Congress Ave.
+Where: [The Marq][9], 422 Congress Ave.
 
 When: Sunday, March 13, 4-7pm
 
-Please visit the [Awesomest Journalism Party. Ever][2] site for more details and to RSVP.
+Please visit the [Awesomest Journalism Party. Ever][8] site for more details and to RSVP.
 
-[![][11]][12]
+{{< figure link="http://hackshackers.com/wp-content/uploads/2011/02/qcpromo1.jpg" src="http://hackshackers.com/wp-content/uploads/2011/02/qcpromo1.jpg" >}}
 
-Live music will be provided by the very popular Austin band [Quiet Company][13] (a recent winner of Best Album by an Austin Band at the [Roaries][14]).
+Live music will be provided by the very popular Austin band [Quiet Company][10] (a recent winner of Best Album by an Austin Band at the [Roaries][11]).
 
 {{< youtube 3HOjN42oksA >}}
 
@@ -18,17 +18,14 @@ Live music will be provided by the very popular Austin band [Quiet Company][13] 
 
 Take a break from the SXSW madness and enjoy some Austin hospitality and one of the best the live music scene has to offer!
 
- [1]: http://hackshackers.com/wp-content/uploads/2011/02/title.jpg "title"
- [2]: http://awesomest.journalismparty.com/ever/
- [3]: http://hackshackers.com
- [4]: http://journalists.org/
- [5]: http://www.poynter.org/
- [6]: http://www.altweeklies.com
- [7]: http://www.visioncloud.eu/
- [8]: http://www.scribd.com/
- [9]: http://tableausoftware.com
- [10]: http://www.yelp.com/biz/the-marq-austin
- [11]: http://hackshackers.com/wp-content/uploads/2011/02/qcpromo1.jpg "qcpromo1"
- [12]: http://hackshackers.com/wp-content/uploads/2011/02/qcpromo1.jpg
- [13]: http://quietcompanymusic.com
- [14]: http://theroaries.com/
+ [1]: http://hackshackers.com
+ [2]: http://journalists.org/
+ [3]: http://www.poynter.org/
+ [4]: http://www.altweeklies.com
+ [5]: http://www.visioncloud.eu/
+ [6]: http://www.scribd.com/
+ [7]: http://tableausoftware.com
+ [8]: http://awesomest.journalismparty.com/ever/
+ [9]: http://www.yelp.com/biz/the-marq-austin
+ [10]: http://quietcompanymusic.com
+ [11]: http://theroaries.com/
