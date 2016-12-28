@@ -89,4 +89,19 @@ class HH_Hugo_Test_Process_WP_Post_Content extends WP_UnitTestCase {
 		$expected = '';
 		$this->assertEquals( $expected, $this->processor->hugo_figure( $input ) );
 	}
+
+	public function test_strip_empty_tags() {
+		$tests = array(
+			array('<a></a>', ''),
+			array('<span></span>', ''),
+			array('<h1></h1>', ''),
+			array('<span></p>', '<span></p>'),
+			array('<span>df</span>', '<span>df</span>'),
+			array('<div><p>', '<div><p>'),
+			array('<span id="test"></span>', '<span id="test"></span>'),
+		);
+		foreach ( $tests as $test ) {
+			$this->assertEquals( $test[1], $this->processor->strip_empty_tags( $test[0] ) );
+		}
+	}
 }

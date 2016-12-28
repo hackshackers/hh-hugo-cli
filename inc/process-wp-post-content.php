@@ -28,6 +28,7 @@ class Process_WP_Post_Content {
 		'meta',
 		'font',
 		'small',
+		'label', // remnant from MailChimp form
 		'span', // none of the spans have useful info for us to retain
 		'p', // Markdown handles <p> for us
 		'div', // Markdown also handles divs
@@ -56,6 +57,9 @@ class Process_WP_Post_Content {
 
 		// apply WP content filters
 		$this->content = apply_filters( 'the_content', $this->content );
+
+		// strip empty tags
+		$this->content = $this->strip_empty_tags( $this->content );
 	}
 
 	/**
@@ -251,5 +255,12 @@ class Process_WP_Post_Content {
 		}
 
 		return sprintf( '{{< %s %s >}}', $provider, $id );
+	}
+
+	/**
+	 * Remove any empty tags without attributes
+	 */
+	public function strip_empty_tags( $content ) {
+		return preg_replace( '/<([a-z][\w]*) ?><\\/\\1>/', '', $content );
 	}
 }
