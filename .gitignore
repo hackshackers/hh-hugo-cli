@@ -5,6 +5,7 @@ vendor/
 *.zip
 *.tar.gz
 hugo-content
+hugo-images
 # STDOUT files
 html_text.txt
 html_tags.txt
