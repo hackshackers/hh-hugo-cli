@@ -27,11 +27,6 @@ class Migrate_Post {
 	protected $local_domain = 'hackshackers.alley.dev';
 
 	/**
-	 * @var Regex for parsing linked images
-	 */
-	protected $img_regex_pattern = '/(?:<a href="([^"]+)">\s*?)?<img (?:title=".*?" )?src="([^"]+)" ?(?:alt="([^"]*)")? ?\/>(?:\s*?<\/a>)?/';
-
-	/**
 	 * @var Max number of HTML tags to allow in Markdown output
 	 */
 	protected $max_html_tags = 0;
@@ -59,7 +54,7 @@ class Migrate_Post {
 		$this->slug = $this->post->post_name;
 		$this->front_matter_src = $this->extract_front_matter( $this->post );
 		$this->front_matter = $this->transform_front_matter( $this->front_matter_src );
-		$this->markdown = $this->transform_post_content( $this->post->post_content );
+		$this->markdown = $this->transform_post_content( $this->post->post_content, $this->post->ID );
 
 		// Check content for excessive HTML tags, flag for manual inspection
 		$this->num_tags = $this->count_tags( $this->markdown );
@@ -144,37 +139,19 @@ class Migrate_Post {
 	 * Convert post_content to Markdown
 	 *
 	 * @param string $content Source content from post_content
+	 * @param int|null $id Post ID being transformed, or null if unknown
 	 * @return string Markdownified content
 	 */
-	public function transform_post_content( $content ) {
-
-		// strip extraneous attributes and make sure no one hard-coded any script tags, etc
-		$content = $this->kses( $content );
-		$content = $this->strip_no_attr_tags( $content );
-
-		// embed URLs and shortcodes to Hugo format
-		$content = $this->convert_link_embeds( $content );
-		$content = $this->convert_shortcodes( $content );
-		$content = $this->convert_image_to_hugo_figure( $content );
-
-		// apply WP content filters
-		$content = apply_filters( 'the_content', $content );
+	public function transform_post_content( $content, $id = null ) {
+		$processor = new Process_WP_Post_Content( $content, $id );
 
 		// Markdownify
 		$converter = new \Markdownify\Converter;
-		$markdown = $converter->parseString( $content );
+		$markdown = $converter->parseString( $processor->output() );
 
 		$markdown = $this->filter_markdown( $markdown );
 
 		return $markdown;
-	}
-
-	public function strip_no_attr_tags( $content ) {
-		// space out any divs that are next to each other
-		$content = preg_replace( '/<\/(div|p)><\1>/', "</\${1}>\n\n<\${1}>", $content );
-
-		// strip tags that don't have attributes
-		return preg_replace( '/<(div|span|p)>(.*?)<\/\1>/s', '${2}', $content );
 	}
 
 	/**
@@ -197,195 +174,5 @@ class Migrate_Post {
 		$markdown = preg_replace( '/(?!^)(\n{0,2}){{< figure/', "\n\n{{< figure", $markdown );
 
 		return $markdown;
-	}
-
-	/**
-	 * Disallow the most common HTML element attributes that would prevent
-	 * post_content from being cleanly translated to Markdown
-	 */
-	public function kses( $content ) {
-		$allowed = wp_kses_allowed_html( 'post' );
-
-		$allowed['img'] = array(
-			'src' => true,
-			'title' => true,
-			'alt' => true,
-		);
-		$allowed['a'] = array(
-			'href' => true,
-			'title' => true,
-			'alt' => true,
-		);
-
-		// disallow tags
-		foreach ( array( 'script' ) as $tagname ) {
-			if ( isset( $allowed[ $tagname ] ) ) {
-				unset( $allowed[ $tagname ] );
-			}
-		}
-
-		// disallow attrs
-		foreach ( $allowed as &$tag ) {
-			// $tag['style'] = false;
-			// $tag['class'] = false;
-			$tag['dir'] = false;
-		}
-
-		return wp_kses( $content, $allowed );
-	}
-
-	/**
-	 * Convert oEmbed link in post_content
-	 *
-	 * @param string $content
-	 * @return string
-	 */
-	public function convert_link_embeds( $content ) {
-		$embeds = \Jetpack_Media_Meta_Extractor::extract_from_content( $content );
-		if ( empty( $embeds['embed']['url'] ) ) {
-			return $content;
-		}
-
-		foreach ( array_unique( $embeds['embed']['url'] ) as $link ) {
-			// $link in format like twitter.com/HacksHackers/status/804429947406286848
-			$site = explode( '/', $link )[0];
-			$replace = null;
-
-			switch ( $site ) {
-				case 'twitter.com':
-				case 't.co':
-					$replace = $this->hugo_shortcode( 'tweet', $link, true );
-					break;
-
-				case 'youtube.com':
-				case 'www.youtube.com':
-				case 'youtu.be':
-					$replace = $this->hugo_shortcode( 'youtube', $link, true );
-					break;
-			}
-
-			if ( $replace ) {
-				// str_replace twice instead of regexp so we don't have to worry
-				// about escaping slashes, etc. in the link
-				$content = str_replace( 'http://' . $link, $replace, $content );
-				$content = str_replace( 'https://' . $link, $replace, $content );
-			}
-		}
-		return $content;
-	}
-
-	/**
-	 * Convert Jetpack media embeds and other shortcodes
-	 */
-	public function convert_shortcodes( $content ) {
-		// Override Jetpack shortcodes
-		add_shortcode( 'youtube', function( $atts ) {
-			return $this->hugo_shortcode( 'youtube', jetpack_get_youtube_id( $atts[0] ) );
-		} );
-
-		add_shortcode( 'vimeo', function( $atts ) {
-			$id = isset( $atts['id'] ) ? $atts['id'] : jetpack_shortcode_get_vimeo_id( $atts );
-			return $this->hugo_shortcode( 'vimeo', $id );
-		} );
-
-		// Use `<blockquote>` which then gets coverted to `> Lorem ipsum` by Markdownify
-		add_shortcode( 'quote', function( $atts ) {
-			$id = isset( $atts['id'] ) ? $atts['id'] : $this->post->ID;
-			$pullquote = get_post_meta( $id, 'quote', true );
-			if ( empty( $pullquote ) ) {
-				return '';
-			}
-			return '<blockquote>' . esc_html( $pullquote ) . '</blockquote>';
-		} );
-
-		add_shortcode( 'caption', function( $atts, $content ) {
-			$args = $this->parse_hugo_figure_args( $content );
-			return $this->hugo_figure( $args );
-		} );
-
-		$content = do_shortcode( $content );
-		return $content;
-	}
-
-	/**
-	 * Convert images in markup to hugo figure shortcode
-	 */
-	public function convert_image_to_hugo_figure( $content ) {
-		return preg_replace_callback( $this->img_regex_pattern, array( $this, '_convert_image_callback' ), $content );
-	}
-
-	/**
-	 * convert single image, not from [caption] shortcode
-	 */
-	public function _convert_image_callback( $matches ) {
-		$hugo_args['link'] = ! empty( $matches[1] ) ? $matches[1] : null;
-		$hugo_args['src'] = ! empty( $matches[2] ) ? $matches[2] : null;
-		$hugo_args['alt'] = ! empty( $matches[3] ) ? trim( $matches[3] ) : null;
-		return $this->hugo_figure( $hugo_args );
-	}
-
-	/**
-	 * parse args for hugo figure shortcode from WP [caption] shortcode
-	 */
-	public function parse_hugo_figure_args( $content ) {
-		$hugo_args = array();
-
-		// add capture group for image caption
-		$pattern = rtrim( $this->img_regex_pattern, '/' ) . '(.+)?/';
-
-		if ( ! preg_match( $pattern, $content, $matches ) ) {
-			return $hugo_args;
-		}
-
-		$hugo_args['link'] = ! empty( $matches[1] ) ? $matches[1] : null;
-		$hugo_args['src'] = ! empty( $matches[2] ) ? $matches[2] : null;
-		$hugo_args['alt'] = ! empty( $matches[3] ) ? trim( $matches[3] ) : null;
-		$hugo_args['caption'] = ! empty( $matches[4] ) ? trim( $matches[4] ) : null;
-
-		return $hugo_args;
-	}
-
-	/**
-	 * Convert WP image shortcode embeds to Hugo figure shortcode
-	 */
-	public function hugo_figure( $args ) {
-
-		if ( empty( $args['src'] ) ) {
-			return '';
-		}
-
-		$output = "{{< figure\n";
-		foreach ( $args as $key => $value ) {
-			if ( $value ) {
-				$output .= sprintf( "  %s=\"%s\"\n", $key, $value );
-			}
-		}
-
-		return $output . ">}}\n\n";
-	}
-
-	/**
-	 * Generate Hugo shortcode, e.g. `{{< tweet 12341234 >}}`
-	 *
-	 * @param string $provider
-	 * @param string|int $id Can be id or link
-	 * @param bool $from_link If true, parse id from URL depending on provider
-	 */
-	public function hugo_shortcode( $provider, $id, $from_link = false ) {
-		// Convert URL to ID if needed
-		if ( $from_link ) {
-			if ( 'tweet' === $provider ) {
-				preg_match( '/status(?:es)?\/(\d+)\/?/', $id, $matches );
-				if ( empty( $matches ) ) {
-					return $id;
-				} else {
-					$id = $matches[1];
-				}
-			} else if ( 'youtube' === $provider ) {
-				$id = jetpack_get_youtube_id( $id );
-			}
-		}
-
-		return sprintf( '{{< %s %s >}}', $provider, $id );
 	}
 }
