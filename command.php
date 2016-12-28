@@ -25,6 +25,8 @@ if ( ! class_exists( 'WP_CLI' ) ) {
  * Commands for Hacks/Hackers WP -> Hugo migration
  */
 class HH_Hugo_Command extends WP_CLI_Command {
+	public $tags = array();
+	public $counters = array();
 
 	/**
 	 * current value of `paged` argument for check_links()
@@ -163,6 +165,22 @@ class HH_Hugo_Command extends WP_CLI_Command {
 		$path = HH_HUGO_COMMAND_DIR . '/hugo-content';
 		exec( 'rm -rf ' . escapeshellarg( $path ) );
 		WP_CLI::success( 'Deleted hugo-content directory' );
+	}
+
+	function count_tags_atts() {
+		$html = file_get_contents( HH_HUGO_COMMAND_DIR . '/html_text.txt' );
+		preg_replace_callback( '/<([a-zA-Z0-9]+) ?(?:(>|class|style)="([^"]+)"?)*>/', function( $matches ) {
+			$i = array_search( $matches[0], $this->tags );
+			if ( false === $i ) {
+				$this->tags[] = $matches[0];
+				$this->counters[] = array( 'tag' => $matches[1], 'att' => $matches[2], 'value' => $matches[3], 'count' => 1 );
+			} else {
+				$this->counters[ $i ]['count']++;
+			}
+
+		},  $html );
+
+		WP_CLI\Utils\format_items( 'csv', $this->counters, array( 'tag', 'att', 'value', 'count' ) );
 	}
 }
 

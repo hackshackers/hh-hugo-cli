@@ -26,6 +26,8 @@ class Process_WP_Post_Content {
 	protected $disallowed_tags = array(
 		'script',
 		'meta',
+		'font',
+		'small',
 		'span', // none of the spans have useful info for us to retain
 		'p', // Markdown handles <p> for us
 		'div', // Markdown also handles divs

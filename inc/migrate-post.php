@@ -85,9 +85,16 @@ class Migrate_Post {
 	 * @param int
 	 */
 	public function count_tags( $input ) {
+		$pattern = '/<(?!http)[A-Z][A-Z0-9]*\b[^>]*>/i'; // exclude Markdown-style linked URLs
 
 		// split string by html opening tags, doesn't need to be exact
-		$count = count( preg_split( '/<([A-Z][A-Z0-9]*)\b[^>]*>/i', $input ) );
+		$count = count( preg_split( $pattern, $input ) );
+
+		if ( 20 > $count && class_exists( '\\WP_CLI' ) ) {
+			preg_replace_callback( $pattern, function( $matches ) {
+				\WP_CLI::line( $this->post->ID . ': ' . $matches[0] );
+			}, $input );
+		}
 
 		return $count - 1;
 	}
