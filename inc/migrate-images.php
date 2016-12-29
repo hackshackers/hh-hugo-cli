@@ -41,6 +41,11 @@ class Migrate_Images {
 	 */
 	protected $source_dir = '';
 
+	/***
+	 * @var string Hugo root dir
+	 */
+	protected $hugo_root_dir = '/content-images/blog';
+
 	/**
 	 * Instantiate and migrate
 	 *
@@ -57,12 +62,12 @@ class Migrate_Images {
 			return $this;
 		}
 
-		$images = $this->extract_images( $markdown );
-		if ( empty( $images ) ) {
+		$this->markdown = $this->extract_images( $markdown );
+
+		// $this->extract_images() will have set up $this->images
+		if ( empty( $this->images ) ) {
 			return;
 		}
-		$this->images = $images;
-
 
 		foreach ( $this->images as &$image ) {
 			if ( $this->should_migrate_image( $image ) ) {
@@ -92,21 +97,43 @@ class Migrate_Images {
 	}
 
 	/**
-	 * Extra images data from Markdown
+	 * Getter for processed Markdown
+	 *
+	 * @return string
+	 */
+	public function get_markdown() {
+		return $this->markdown;
+	}
+
+	/**
+	 * Extract images data and process Markdown
 	 *
 	 * @param string $input Markdown input
-	 * @return array Images data
+	 * @return $string Processed Markdown
 	 */
 	public function extract_images( $markdown ) {
-		preg_match_all( $this->pattern, $markdown, $matches, PREG_SET_ORDER );
-		return array_map( function( $match ) {
-			return array(
-				'url' => $match[0],
-				'year' => $match[1],
-				'month' => $match[2],
-				'filename' => $match[3],
-			);
-		}, $matches );
+		return preg_replace_callback( $this->pattern, array( $this, '_extract_images_callback' ), $markdown );
+	}
+
+	/**
+	 * Store image data and replace WP URL with Hugo URL
+	 *
+	 * @param array $matches Regex matches
+	 * @return string Hugo URL
+	 */
+	public function _extract_images_callback( $matches ) {
+		$this->images[] = array(
+			'url' => $matches[0],
+			'year' => $matches[1],
+			'month' => $matches[2],
+			'filename' => $matches[3],
+		);
+		return implode( '/', array(
+			$this->hugo_root_dir,
+			$matches[1],
+			$matches[2],
+			$matches[3],
+		) );
 	}
 
 	/**

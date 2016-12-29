@@ -76,6 +76,7 @@ class Migrate_Post {
 		if ( $incl_images ) {
 			$migrate_images = new Migrate_Images( $this->markdown, $dry_run );
 			$this->image_results = $migrate_images->results();
+			$this->markdown = $migrate_images->get_markdown();
 		}
 
 		// Check content for excessive HTML tags, flag for manual inspection
