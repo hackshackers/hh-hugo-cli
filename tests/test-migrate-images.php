@@ -113,6 +113,16 @@ class HH_Hugo_Test_Migrate_Images extends WP_UnitTestCase {
 			),
 		);
 		$input = $this->_get_test_data( 'test', 'extract-images.md' );
+		$markdown = $this->migrator->extract_images( $input );
+		$this->assertEquals( $expected, $this->migrator->results()['images'] );
+
+		// check markdown itself
+		$input = '{{< figure src="http://hackshackers.com/wp-content/uploads/2016/01/test2.png" >}}';
+		$expected = '{{< figure src="/content-images/blog/2016/01/test2.png" >}}';
+		$this->assertEquals( $expected, $this->migrator->extract_images( $input ) );
+
+		$input = '[!foo](http://hackshackers.com/wp-content/uploads/2016/01/test2.png)';
+		$expected = '[!foo](/content-images/blog/2016/01/test2.png)';
 		$this->assertEquals( $expected, $this->migrator->extract_images( $input ) );
 	}
 
