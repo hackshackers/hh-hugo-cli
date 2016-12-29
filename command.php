@@ -135,7 +135,7 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	 * [--images]
 	 * : Migrate images along with content
 	 */
-	function migrate_posts( $args, $assoc_args ) {
+	function migrate_all_posts( $args, $assoc_args ) {
 
 		$this->query = new WP_Query( array(
 			'fields' => 'ids',
