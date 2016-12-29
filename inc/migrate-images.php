@@ -109,7 +109,7 @@ class Migrate_Images {
 	 * Extract images data and process Markdown
 	 *
 	 * @param string $input Markdown input
-	 * @return $string Processed Markdown
+	 * @return string Processed Markdown
 	 */
 	public function extract_images( $markdown ) {
 		return preg_replace_callback( $this->pattern, array( $this, '_extract_images_callback' ), $markdown );
