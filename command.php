@@ -14,6 +14,7 @@ require_once( HH_HUGO_COMMAND_DIR . '/Markdownify/src/ConverterExtra.php' );
 // Migration classes
 require_once( HH_HUGO_COMMAND_DIR . '/inc/write-file.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/process-wp-post-content.php' );
+require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-images.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-post.php' );
 
 
@@ -33,6 +34,7 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	 */
 	protected $paged = 1;
 	protected $query;
+	protected $image_results = array( 'success' => 0, 'error' => 0, 'skip' => 0 );
 
 	protected $deactivate_plugins = array(
 		'w3-total-cache',
@@ -73,7 +75,10 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	 * : Print extra output
 	 *
 	 * [--dry-run]
-	 * : Run without touching any Markdown files
+	 * : Simulate without touching any Markdown files or images
+	 *
+	 * [--images]
+	 * : Migrate images along with content
 	 *
 	 * ## EXAMPLES
 	 *
@@ -82,12 +87,13 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	function migrate_post( $args, $assoc_args, $standalone = true ) {
 		$verbose = isset( $assoc_args['verbose'] );
 		$dry_run = isset( $assoc_args['dry-run'] );
+		$incl_images = isset( $assoc_args['images'] );
 
 		// Convert to array
 		$posts = explode( ',', $args[0] );
 
 		foreach ( $posts as $post ) {
-			$migrated = new HH_Hugo\Migrate_Post( $post, $dry_run );
+			$migrated = new HH_Hugo\Migrate_Post( $post, $dry_run, $incl_images );
 			$result = $migrated->get( 'result' );
 
 			// $result will be in format like array( 'success' => 'message' )
@@ -97,6 +103,19 @@ class HH_Hugo_Command extends WP_CLI_Command {
 				WP_CLI::warning( array_values( $result )[0] );
 				if ( $verbose ) {
 					$this->markdown( array( $post ) );
+				}
+			}
+
+			if ( $incl_images ) {
+				$post_image_results = $migrated->get( 'image_results' );
+				// Log output for this post?
+				if ( $standalone || $verbose ) {
+					WP_CLI\Utils\format_items( 'table', $post_image_results['images'], array( 'year', 'month', 'filename', 'result' ) );
+				}
+
+				// increment class counter
+				foreach ( array_keys( $this->image_results ) as $key ) {
+					$this->image_results[ $key ] += $post_image_results['results'][ $key ];
 				}
 			}
 		}
@@ -111,7 +130,10 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	 * : Print extra output
 	 *
 	 * [--dry-run]
-	 * : Run without touching any Markdown files
+	 * : Simulate without touching any Markdown files or images
+	 *
+	 * [--images]
+	 * : Migrate images along with content
 	 */
 	function migrate_posts( $args, $assoc_args ) {
 
@@ -133,6 +155,15 @@ class HH_Hugo_Command extends WP_CLI_Command {
 		if ( 500 === count( $this->query->posts ) ) {
 			$this->paged++;
 			$this->migrate_posts( $args, $assoc_args );
+		}
+
+		if ( isset( $assoc_args['images'] ) ) {
+			WP_CLI::success( sprintf(
+				"Image results:\n------------\nSuccess: %d\nError: %d\nSkipped: %d",
+				$this->image_results['success'],
+				$this->image_results['error'],
+				$this->image_results['skip']
+			) );
 		}
 	}
 
@@ -165,17 +196,23 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Delete hugo-content directory
+	 * Delete hugo-content and hugo-images directories
 	 *
 	 * ## EXAMPLES
 	 *
-	 * wp hh-hugo clear_content_dir
+	 * wp hh-hugo delete_content_dirs
 	 */
-	function delete_content_dir( $args, $assoc_args ) {
-		WP_CLI::confirm( 'Are you sure you want to delete the hugo-content directory?' );
-		$path = HH_HUGO_COMMAND_DIR . '/hugo-content';
-		exec( 'rm -rf ' . escapeshellarg( $path ) );
-		WP_CLI::success( 'Deleted hugo-content directory' );
+	function delete_content_dirs( $args, $assoc_args ) {
+		WP_CLI::confirm( 'Are you sure you want to delete the hugo-content and hugo-images directories?' );
+
+		foreach( array( 'hugo-content', 'hugo-images' ) as $dir ) {
+			$path = trailingslashit( HH_HUGO_COMMAND_DIR ) . $dir;
+			if ( is_dir( $path ) ) {
+				exec( 'rm -rf ' . escapeshellarg( $path ) );
+			}
+		}
+
+		WP_CLI::success( 'Deleted hugo-content and hugo-images directories' );
 	}
 }
 

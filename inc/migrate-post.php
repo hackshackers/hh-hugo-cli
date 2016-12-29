@@ -29,7 +29,7 @@ class Migrate_Post {
 	/**
 	 * @var Max number of HTML tags to allow in Markdown output
 	 */
-	protected $max_html_tags = 0;
+	protected $max_html_tags = 10;
 
 	/**
 	 * @var array List of remaining HTML tags that we could log
@@ -37,12 +37,18 @@ class Migrate_Post {
 	protected $tags_output = array();
 
 	/**
+	 * @var null|array If migrating images, results go here
+	 */
+	protected $image_results = null;
+
+	/**
 	 * get started
 	 *
 	 * @param int|WP_Post $post Post to migrate
 	 * @param bool $dry_run Defaults to false, if true don't write output to file
+	 * @param bool $incl_images Defaults to false, if true then migrate images (dry-run is also applicable here)
 	 */
-	public function __construct( $post, $dry_run = false ) {
+	public function __construct( $post, $dry_run = false, $incl_images = false ) {
 		// just return the class for unit testing
 		if ( empty( $post ) && defined( 'HH_HUGO_UNIT_TESTS_RUNNING' ) ) {
 			return $this;
@@ -60,6 +66,11 @@ class Migrate_Post {
 		$this->front_matter_src = $this->extract_front_matter( $this->post );
 		$this->front_matter = $this->transform_front_matter( $this->front_matter_src );
 		$this->markdown = $this->transform_post_content( $this->post->post_content, $this->post->ID );
+
+		if ( $incl_images ) {
+			$migrate_images = new Migrate_Images( $this->markdown, $dry_run );
+			$this->image_results = $migrate_images->results();
+		}
 
 		// Check content for excessive HTML tags, flag for manual inspection
 		$this->num_tags = $this->count_tags( $this->markdown );
