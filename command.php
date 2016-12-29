@@ -16,6 +16,7 @@ require_once( HH_HUGO_COMMAND_DIR . '/inc/write-file.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/process-wp-post-content.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-images.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-post.php' );
+require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-group.php' );
 
 
 if ( ! class_exists( 'WP_CLI' ) ) {
@@ -210,7 +211,7 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	function delete_content_dirs( $args, $assoc_args ) {
 		WP_CLI::confirm( 'Are you sure you want to delete the hugo-content and hugo-images directories?' );
 
-		foreach( array( 'hugo-content', 'hugo-images' ) as $dir ) {
+		foreach( array( 'hugo-content', 'hugo-images', 'hugo-groups' ) as $dir ) {
 			$path = trailingslashit( HH_HUGO_COMMAND_DIR ) . $dir;
 			if ( is_dir( $path ) ) {
 				exec( 'rm -rf ' . escapeshellarg( $path ) );
@@ -228,6 +229,9 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	 * <id>
 	 * : WordPress post ID or slug, or comma-separated list of IDs/slugs
 	 *
+	 * [--parent=<id>]
+	 * : Override hard-coded groups parent page ID
+	 *
 	 * [--dry-run]
 	 * : Simulate without touching any Markdown files or images
 	 *
@@ -237,12 +241,19 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	 */
 	function migrate_group( $args, $assoc_args ) {
 		$dry_run = isset( $assoc_args['dry-run'] );
+		$parent_id = is_numeric( $assoc_args['parent'] ) ? intval( $assoc_args['parent'] ) : $this->groups_parent_page_id;
 
-		// Convert to array
-		$groups = explode( ',', $args[0] );
+		// Convert to array if needed
+		if ( is_string( $args[0] ) ) {
+			$groups = explode( ',', $args[0] );
+		} else {
+			$groups = array( $args[0] );
+		}
 
 		foreach ( $groups as $group ) {
-			$migrated = new HH_Hugo\Migrate_Group( $group, $dry_run );
+			// $group could be post ID, post_name, or WP_Post object
+			$migrated = new HH_Hugo\Migrate_Group( $group, $parent_id, $dry_run );
+			$result = $migrated->result();
 
 			// $result will be in format like array( 'success' => 'message' )
 			if ( 'success' === array_keys( $result )[0] ) {
@@ -276,7 +287,6 @@ class HH_Hugo_Command extends WP_CLI_Command {
 		$parent_id = is_numeric( $assoc_args['parent'] ) ? intval( $assoc_args['parent'] ) : $this->groups_parent_page_id;
 
 		$this->query = new WP_Query( array(
-			'fields' => 'ids',
 			'posts_per_page' => 500,
 			'post_type' => 'page',
 			'post_status' => 'publish',

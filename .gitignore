@@ -6,6 +6,8 @@ vendor/
 *.tar.gz
 hugo-content
 hugo-images
+hugo-groups
+geo-api-token.txt
 # STDOUT files
 html_text.txt
 html_tags.txt
