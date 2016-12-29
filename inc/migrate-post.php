@@ -63,6 +63,12 @@ class Migrate_Post {
 		}
 
 		$this->slug = $this->post->post_name;
+
+		// correct a few posts that have ID as post_name instead of a slug based on the title
+		if ( is_numeric( $this->slug ) && ( intval( $this->slug ) == $this->post->ID ) ) {
+			$this->slug = sanitize_title( $this->post->post_title, $this->slug );
+		}
+
 		$this->front_matter_src = $this->extract_front_matter( $this->post );
 		$this->front_matter = $this->transform_front_matter( $this->front_matter_src );
 		$this->markdown = $this->transform_post_content( $this->post->post_content, $this->post->ID );
