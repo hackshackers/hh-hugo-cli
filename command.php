@@ -42,6 +42,11 @@ class HH_Hugo_Command extends WP_CLI_Command {
 		'google-analytics-for-wordpress',
 	);
 
+	/**
+	 * @var int Default ID of groups parent page, can be overriden with --parent
+	 */
+	protected $groups_parent_page_id = 465;
+
 	function __construct() {
 		// Make sure thse plugins are deactivated, if any are active
 		$to_deactivate = array_filter( $this->deactivate_plugins, function( $plugin ) {
@@ -213,6 +218,83 @@ class HH_Hugo_Command extends WP_CLI_Command {
 		}
 
 		WP_CLI::success( 'Deleted hugo-content and hugo-images directories' );
+	}
+
+	/**
+	 * Migrate a single group
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>
+	 * : WordPress post ID or slug, or comma-separated list of IDs/slugs
+	 *
+	 * [--dry-run]
+	 * : Simulate without touching any Markdown files or images
+	 *
+	 * ## EXAMPLES
+	 *
+	 * wp hh-hugo migrate_group atlanta
+	 */
+	function migrate_group( $args, $assoc_args ) {
+		$dry_run = isset( $assoc_args['dry-run'] );
+
+		// Convert to array
+		$groups = explode( ',', $args[0] );
+
+		foreach ( $groups as $group ) {
+			$migrated = new HH_Hugo\Migrate_Group( $group, $dry_run );
+
+			// $result will be in format like array( 'success' => 'message' )
+			if ( 'success' === array_keys( $result )[0] ) {
+				WP_CLI::line( array_values( $result )[0] );
+			} elseif ( 'success' !== array_keys( $result )[0] ) {
+				WP_CLI::warning( array_values( $result )[0] );
+			}
+		}
+	}
+
+	/**
+	 * Migrate all groups
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--parent=<id>]
+	 * : Override hard-coded groups parent page ID
+	 *
+	 * [--verbose]
+	 * : Print extra output
+	 *
+	 * [--dry-run]
+	 * : Simulate without touching any Markdown files or images
+	 *
+	 * ## EXAMPLES
+	 *
+	 * wp hh-hugo migrate_groups
+	 * wp hh-hugo migrate_groups --parent=123456
+	 */
+	function migrate_all_groups( $args, $assoc_args ) {
+		$parent_id = is_numeric( $assoc_args['parent'] ) ? intval( $assoc_args['parent'] ) : $this->groups_parent_page_id;
+
+		$this->query = new WP_Query( array(
+			'fields' => 'ids',
+			'posts_per_page' => 500,
+			'post_type' => 'page',
+			'post_status' => 'publish',
+			'paged' => $this->paged,
+			'post_parent' => $parent_id,
+		) );
+
+		foreach ( $this->query->posts as $group ) {
+			// If --verbose and --dry-run are set,
+			// they are passed directly to migrate_group() here
+			$this->migrate_group( array( $group ), $assoc_args, $false );
+		}
+
+		// increment pagination and run again if needed
+		if ( 500 === count( $this->query->posts ) ) {
+			$this->paged++;
+			$this->migrate_posts( $args, $assoc_args );
+		}
 	}
 }
 
