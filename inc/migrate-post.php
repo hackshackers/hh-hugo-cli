@@ -136,15 +136,8 @@ class Migrate_Post {
 	 * @return array
 	 */
 	public function extract_front_matter( $post ) {
-		$categories = wp_get_post_terms( $post->ID, 'category', array( 'fields' => 'names' ) );
-		$categories = array_filter( $categories, function( $name ) {
-			return 'Uncategorized' !== $name;
-		} );
-
 		$data = array(
 			'title' => get_the_title( $post ),
-			'tags' => wp_get_post_terms( $post->ID, 'post_tag', array( 'fields' => 'names' ) ),
-			'categories' => $categories,
 			'authors' => array( get_the_author_meta( 'display_name', intval( $post->post_author ) ) ),
 			'date' => get_the_date( 'Y-m-d', $post->ID ),
 			'_migration' => array(
@@ -152,6 +145,10 @@ class Migrate_Post {
 				'timestamp' => time(),
 			),
 		);
+
+		// Merge in tags, categories, and groups
+		$terms = new Migrate_Terms( $post->ID );
+		$data = array_merge( $data, $terms->output() );
 
 		if ( ! empty( $post->post_excerpt ) ) {
 			$data['description'] = $post->post_excerpt;
