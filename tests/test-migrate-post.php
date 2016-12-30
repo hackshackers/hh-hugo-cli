@@ -2,29 +2,17 @@
 class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 
 	protected $posts;
-	protected $tags = array( 'Tag 1', 'Tag 2', 'Tag 3' );
-	protected $categories = array( 'Cat 1', 'Cat 2', 'Cat 3' );
 	protected $migrator;
 
 	public function setUp() {
 		$admin_user_id = get_user_by( 'slug', 'admin' )->ID;
 		$expected_date = date( 'Y-m-d' );
 
-		foreach ( $this->tags as $name ) {
-			$tag_ids[] = wp_insert_term( $name, 'post_tag' )['term_id'];
-		}
-
-		foreach ( $this->categories as $name ) {
-			$category_ids[] = wp_insert_term( $name, 'category' )['term_id'];
-		}
-
 		// test with excerpt/description
 		$this->posts[] = wp_insert_post( array(
 			'post_author' => $admin_user_id,
 			'post_date' => '2013-11-01 11:37:54',
 			'post_title' => 'Test post title',
-			'tags_input' => $tag_ids,
-			'post_category' => $category_ids,
 			'post_content' => 'lorem ipsum',
 			'post_excerpt' => 'lorem ipsum',
 		) );
@@ -56,12 +44,14 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 	}
 
 	public function test_extract_front_matter() {
+		/**
+		 * Not testing with tags/categories because it requires term IDs to match production database
+		 */
+
 		$front_matter = $this->migrator->extract_front_matter( get_post( $this->posts[0] ) );
 
 		$this->assertEquals( 'Test post title', $front_matter['title'] );
 		$this->assertEquals( 'admin', $front_matter['authors'][0] );
-		$this->assertEquals( $this->tags, $front_matter['tags'] );
-		$this->assertEquals( $this->categories, $front_matter['categories'] );
 		$this->assertEquals( '2013-11-01', $front_matter['date'] );
 		$this->assertEquals( 'lorem ipsum', $front_matter['description'] );
 		$this->assertEquals( $this->posts[0], $front_matter['_migration']['id'] );
