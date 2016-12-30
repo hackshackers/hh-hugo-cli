@@ -49,7 +49,7 @@ class Migrate_Group {
 	}
 
 	/**
-	 * Instantiate and migrate
+	 * Get page from slug or post ID
 	 *
 	 * @param string|int $group WordPress post ID or slug
 	 * @param int $parent_id ID of WordPress parent page
