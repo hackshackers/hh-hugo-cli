@@ -167,7 +167,7 @@ class Migrate_Post {
 	 * @return string YAML string
 	 */
 	public function transform_front_matter( $src ) {
-		$yaml = yaml_emit( $src );
+		$yaml = yaml_emit( $src, YAML_UTF8_ENCODING );
 		$yaml = preg_replace( '/\.\.\.$/', '---', $yaml );
 		return $yaml;
 	}
