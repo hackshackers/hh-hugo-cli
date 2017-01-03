@@ -206,7 +206,7 @@ class Process_WP_Post_Content {
 	public function _convert_image_callback( $matches ) {
 		$hugo_args['link'] = ! empty( $matches[1] ) ? $matches[1] : null;
 		$hugo_args['src'] = ! empty( $matches[2] ) ? $matches[2] : null;
-		$hugo_args['alt'] = ! empty( $matches[3] ) ? trim( $matches[3] ) : null;
+		$hugo_args['alt'] = ! empty( $matches[3] ) ? $matches[3] : null;
 		return $this->hugo_figure( $hugo_args );
 	}
 	/**
@@ -227,8 +227,8 @@ class Process_WP_Post_Content {
 
 		$hugo_args['link'] = ! empty( $matches[1] ) ? $matches[1] : null;
 		$hugo_args['src'] = ! empty( $matches[2] ) ? $matches[2] : null;
-		$hugo_args['alt'] = ! empty( $matches[3] ) ? trim( $matches[3] ) : null;
-		$hugo_args['caption'] = ! empty( $matches[4] ) ? trim( $matches[4] ) : null;
+		$hugo_args['alt'] = ! empty( $matches[3] ) ? $matches[3] : null;
+		$hugo_args['caption'] = ! empty( $matches[4] ) ? $matches[4]: null;
 
 		return $hugo_args;
 	}
@@ -251,7 +251,7 @@ class Process_WP_Post_Content {
 		$output = "{{< figure\n";
 		foreach ( $args as $key => $value ) {
 			if ( $value ) {
-				$output .= sprintf( "  %s=\"%s\"\n", $key, $value );
+				$output .= sprintf( "  %s=\"%s\"\n", $key, trim( $value ) );
 			}
 		}
 
