@@ -40,16 +40,15 @@ class Migrate_Terms {
 	 * @return array Hugo tags, categories, groups
 	 */
 	public function get_hugo_terms( $wp_terms ) {
-		$hugo_terms = array();
+		$hugo_terms = array(
+			'tags' => array(),
+			'categories' => array(),
+			'groups' => array(),
+		);
 
 		foreach( $wp_terms as $wp_term ) {
 			// get Hugo term data
 			if ( $hugo_term = hh_hugo_get_term_data( $wp_term ) ) {
-
-				// create taxonomy list if needed
-				if ( ! isset( $hugo_terms[ $hugo_term['taxonomy'] ] ) ) {
-					$hugo_terms[ $hugo_term['taxonomy'] ] = array();
-				}
 
 				// add term if not already present
 				if ( ! in_array( $hugo_term['term'], $hugo_terms[ $hugo_term['taxonomy'] ] ) ) {
