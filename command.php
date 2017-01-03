@@ -14,6 +14,8 @@ require_once( HH_HUGO_COMMAND_DIR . '/Markdownify/src/ConverterExtra.php' );
 // Migration classes
 require_once( HH_HUGO_COMMAND_DIR . '/inc/write-file.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/process-wp-post-content.php' );
+require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-terms-data.php' );
+require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-terms.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-images.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-post.php' );
 require_once( HH_HUGO_COMMAND_DIR . '/inc/migrate-group.php' );
