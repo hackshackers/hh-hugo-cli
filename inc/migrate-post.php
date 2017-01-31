@@ -130,15 +130,17 @@ class Migrate_Post {
 	}
 
 	/**
-	 * Extract data that will be converted to YAML front matter
+	 * Extract data that will be converted to YAML front matter.
+	 * Use html_entity_decode() because Hugo templates automatically encode.
 	 *
 	 * @param WP_Post $post
 	 * @return array
 	 */
 	public function extract_front_matter( $post ) {
+		$author_name = get_the_author_meta( 'display_name', intval( $post->post_author ) );
 		$data = array(
-			'title' => get_the_title( $post ),
-			'authors' => array( get_the_author_meta( 'display_name', intval( $post->post_author ) ) ),
+			'title' => html_entity_decode( get_the_title( $post ) ),
+			'authors' => array( html_entity_decode( $author_name ) ),
 			'date' => get_the_date( 'Y-m-d', $post->ID ),
 			'_migration' => array(
 				'id' => $post->ID,
