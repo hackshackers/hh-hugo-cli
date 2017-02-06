@@ -177,7 +177,7 @@ class Migrate_Images {
 		}
 
 		// file exists in source?
-		return file_exists( $this->image_path( $image, 'src') );
+		return file_exists( $this->image_path( $image, 'src' ) );
 	}
 
 	/**

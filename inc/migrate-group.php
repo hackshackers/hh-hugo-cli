@@ -175,7 +175,7 @@ class Migrate_Group {
 	 */
 	public function get_yaml( $data ) {
 		$yaml = yaml_emit( $data, YAML_UTF8_ENCODING );
-		return trim( preg_replace( array( '/^-+\n/', '/\.+$/'), '', $yaml ) );
+		return trim( preg_replace( array( '/^-+\n/', '/\.+$/' ), '', $yaml ) );
 	}
 
 	/**

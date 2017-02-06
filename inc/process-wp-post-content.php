@@ -21,6 +21,16 @@ class Process_WP_Post_Content {
 	protected $img_regex_pattern = '/(?:<a href="([^"]+)">\s*?)?<img (?:title=".*?" )?src="([^"]+)" ?(?:alt="([^"]*)")? ?\/>(?:\s*?<\/a>)?/';
 
 	/**
+	 * @var Regex for parsing iframes
+	 */
+	protected $iframe_regex_pattern = '/<iframe .*>.*?<\/iframe>/';
+
+	/**
+	 * @var default iframe dimensions
+	 */
+	protected $iframe_defaults = array( 'width' => '100%', 'height' => '250px' );
+
+	/**
 	 * @var array Disallowed tags for wp_kses
 	 */
 	protected $disallowed_tags = array(
@@ -59,6 +69,7 @@ class Process_WP_Post_Content {
 		$this->content = $this->convert_link_embeds( $this->content );
 		$this->content = $this->convert_shortcodes( $this->content );
 		$this->content = $this->convert_image_to_hugo_figure( $this->content );
+		$this->content = $this->convert_iframes( $this->content );
 
 		// apply WP content filters
 		$this->content = apply_filters( 'the_content', $this->content );
@@ -86,6 +97,12 @@ class Process_WP_Post_Content {
 			'href' => true,
 			'title' => true,
 			'alt' => true,
+		);
+
+		$allowed['iframe'] = array(
+			'src' => true,
+			'width' => true,
+			'height' => true,
 		);
 
 		// disallow tags
@@ -185,6 +202,56 @@ class Process_WP_Post_Content {
 
 		$content = do_shortcode( $content );
 		return $content;
+	}
+
+	/**
+	 * Convert iframes in markup to custom Hugo iframe shortcode
+	 *
+	 * @param string $content HTML input
+	 * @return string HTML with all iframes converted to Hugo {{< iframe >}} shortcode
+	 */
+	public function convert_iframes( $content ) {
+		return preg_replace_callback( $this->iframe_regex_pattern, array( $this, '_convert_iframe_callback' ), $content );
+	}
+
+	/**
+	 * convert single iframe
+	 *
+	 * @param array $matches Result of regex
+	 * @return string Hugo iframe shortcode
+	 */
+	public function _convert_iframe_callback( $matches ) {
+		$el = new \SimpleXMLElement( $matches[0] );
+		$atts = $el->attributes();
+		if ( empty( $atts['src'] ) ) {
+			return '';
+		}
+
+		return sprintf( '{{< iframe src="%s" width="%s" height="%s" >}}',
+			urldecode( $atts['src'] ),
+			$this->_convert_att_dimension( $atts, 'width' ),
+			$this->_convert_att_dimension( $atts, 'height' )
+		);
+	}
+
+	/**
+	 * get width or height from att to css value
+	 *
+	 * @param array $atts
+	 * @param string $key
+	 * @return string Empty if unknown key
+	 */
+	private function _convert_att_dimension( $atts, $key ) {
+		if ( empty( $atts[ $key ] ) ) {
+			return isset( $this->iframe_defaults[ $key ] ) ? $this->iframe_defaults[ $key ] : '';
+		}
+		$value = strval( $atts[ $key ] );
+
+		if ( is_numeric( $value ) ) {
+			return $value . 'px';
+		}
+
+		return $value;
 	}
 
 	/**
