@@ -36,7 +36,11 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 	 * @return string Contents of file
 	 */
 	private function _get_test_data( $type, $filename ) {
-		return file_get_contents( HH_HUGO_COMMAND_DIR . '/tests/data/' . $type . '/' . $filename );
+		$file_path = HH_HUGO_COMMAND_DIR . '/tests/data/' . $type . '/' . $filename;
+		if ( ! file_exists( $file_path ) ) {
+			return '';
+		}
+		return file_get_contents( $file_path );
 	}
 
 	public function test_class_exists() {
@@ -86,6 +90,7 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 		$this->_test_transform_post_content( 'test_es_3533' );
 		$this->_test_transform_post_content( 'test_recent_17696' );
 		$this->_test_transform_post_content( 'test_yt_shortcode_2024' );
+		$this->_test_transform_post_content( 'test_iframe' );
 	}
 
 	private function _test_transform_post_content( $filename, $dump = false ) {
