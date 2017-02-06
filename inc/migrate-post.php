@@ -138,6 +138,10 @@ class Migrate_Post {
 	 */
 	public function extract_front_matter( $post ) {
 		$author_name = get_the_author_meta( 'display_name', intval( $post->post_author ) );
+		if ( empty( $author_name ) ) {
+			$author_name = get_the_author_meta( 'user_login', intval( $post->post_author ) );
+		}
+
 		$data = array(
 			'title' => html_entity_decode( get_the_title( $post ) ),
 			'authors' => array( html_entity_decode( $author_name ) ),
