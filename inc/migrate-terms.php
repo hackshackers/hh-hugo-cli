@@ -57,6 +57,10 @@ class Migrate_Terms {
 			}
 		}
 
+		$hugo_terms = array_filter( $hugo_terms, function( $taxonomy ) {
+			return ! empty( $taxonomy );
+		} );
+
 		return $hugo_terms;
 	}
 
