@@ -46,7 +46,7 @@ class Migrate_Terms {
 			'groups' => array(),
 		);
 
-		foreach( $wp_terms as $wp_term ) {
+		foreach ( $wp_terms as $wp_term ) {
 			// get Hugo term data
 			if ( $hugo_term = hh_hugo_get_term_data( $wp_term ) ) {
 
@@ -56,6 +56,10 @@ class Migrate_Terms {
 				}
 			}
 		}
+
+		$hugo_terms = array_filter( $hugo_terms, function( $taxonomy ) {
+			return ! empty( $taxonomy );
+		} );
 
 		return $hugo_terms;
 	}
@@ -76,7 +80,7 @@ class Migrate_Terms {
 			$categories = array();
 		} else {
 			$categories = array_filter( $categories, function( $id ) {
-				return $this->uncategorized_id !== intval( $id );
+				return intval( $id ) !== $this->uncategorized_id;
 			} );
 		}
 
@@ -98,5 +102,4 @@ class Migrate_Terms {
 	public function output() {
 		return $this->hugo_terms;
 	}
-
 }

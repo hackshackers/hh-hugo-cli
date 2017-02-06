@@ -12,7 +12,7 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 		$this->posts[] = wp_insert_post( array(
 			'post_author' => $admin_user_id,
 			'post_date' => '2013-11-01 11:37:54',
-			'post_title' => 'Test post title',
+			'post_title' => 'Test post title with HTML entity &amp;',
 			'post_content' => 'lorem ipsum',
 			'post_excerpt' => 'lorem ipsum',
 		) );
@@ -36,7 +36,11 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 	 * @return string Contents of file
 	 */
 	private function _get_test_data( $type, $filename ) {
-		return file_get_contents( HH_HUGO_COMMAND_DIR . '/tests/data/' . $type . '/' . $filename );
+		$file_path = HH_HUGO_COMMAND_DIR . '/tests/data/' . $type . '/' . $filename;
+		if ( ! file_exists( $file_path ) ) {
+			return '';
+		}
+		return file_get_contents( $file_path );
 	}
 
 	public function test_class_exists() {
@@ -50,7 +54,7 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 
 		$front_matter = $this->migrator->extract_front_matter( get_post( $this->posts[0] ) );
 
-		$this->assertEquals( 'Test post title', $front_matter['title'] );
+		$this->assertEquals( 'Test post title with HTML entity &', $front_matter['title'] );
 		$this->assertEquals( 'admin', $front_matter['authors'][0] );
 		$this->assertEquals( '2013-11-01', $front_matter['date'] );
 		$this->assertEquals( 'lorem ipsum', $front_matter['description'] );
@@ -86,6 +90,7 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 		$this->_test_transform_post_content( 'test_es_3533' );
 		$this->_test_transform_post_content( 'test_recent_17696' );
 		$this->_test_transform_post_content( 'test_yt_shortcode_2024' );
+		$this->_test_transform_post_content( 'test_iframe' );
 	}
 
 	private function _test_transform_post_content( $filename, $dump = false ) {
