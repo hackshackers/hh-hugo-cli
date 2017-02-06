@@ -213,7 +213,7 @@ class HH_Hugo_Command extends WP_CLI_Command {
 	function delete_content_dirs( $args, $assoc_args ) {
 		WP_CLI::confirm( 'Are you sure you want to delete the hugo-content and hugo-images directories?' );
 
-		foreach( array( 'hugo-content', 'hugo-images', 'hugo-groups' ) as $dir ) {
+		foreach ( array( 'hugo-content', 'hugo-images', 'hugo-groups' ) as $dir ) {
 			$path = trailingslashit( HH_HUGO_COMMAND_DIR ) . $dir;
 			if ( is_dir( $path ) ) {
 				exec( 'rm -rf ' . escapeshellarg( $path ) );
