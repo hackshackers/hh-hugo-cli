@@ -12,7 +12,7 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 		$this->posts[] = wp_insert_post( array(
 			'post_author' => $admin_user_id,
 			'post_date' => '2013-11-01 11:37:54',
-			'post_title' => 'Test post title',
+			'post_title' => 'Test post title with HTML entity &amp;',
 			'post_content' => 'lorem ipsum',
 			'post_excerpt' => 'lorem ipsum',
 		) );
@@ -50,7 +50,7 @@ class HH_Hugo_Test_Migrate_Post extends WP_UnitTestCase {
 
 		$front_matter = $this->migrator->extract_front_matter( get_post( $this->posts[0] ) );
 
-		$this->assertEquals( 'Test post title', $front_matter['title'] );
+		$this->assertEquals( 'Test post title with HTML entity &', $front_matter['title'] );
 		$this->assertEquals( 'admin', $front_matter['authors'][0] );
 		$this->assertEquals( '2013-11-01', $front_matter['date'] );
 		$this->assertEquals( 'lorem ipsum', $front_matter['description'] );
