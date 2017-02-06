@@ -210,7 +210,10 @@ class Migrate_Post {
 		// fix line breaks with linked images if any weren't migrated to Hugo figure
 		$markdown = preg_replace( '/\[\n+\!/', "\n\n[!", $markdown );
 
-		// ensure line breaks before/after {{< figure >}}
+		// handle unexpected HTML entity at end of parsed shortcodes
+		$markdown = preg_replace( '/&#\d+;\s+>}}/', '" >}}', $markdown );
+
+		// ensure line breaks before {{< figure >}}
 		$markdown = preg_replace( '/(?!^)(\n{0,2}){{< figure/', "\n\n{{< figure", $markdown );
 
 		// collapse excess line breaks
