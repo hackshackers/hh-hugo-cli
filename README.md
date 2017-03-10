@@ -1,6 +1,6 @@
 # Hacks/Hackers migration
 
-Migrates WordPress content to Hugo via [WP-CLI](http://wp-cli.org).
+Migrates WordPress content from the old (pre-2017) WordPress site to the [new Hugo site](https://github.com/hackshackers/hackshackers-hugo) via [WP-CLI](http://wp-cli.org).
 
 ## Setup
 
@@ -9,10 +9,10 @@ Place command directory somewhere that WP-CLI can reach it. Then use [`wp packag
 ## Usage
 
 ```
-wp help hh-hugo # More info about commands and arguments
-wp hh-hugo migrate post 123 # Migrates specific post with ID 123
-wp hh-hugo migrate post 123,456 # Migrates posts 123 and 456
-wp hh-hugo migrate posts # Migrate all published items in `post` post type
-wp hh-hugo markdown 123 # Convert WP post_content to Markdown and send to STDOUT
-wp hh-hugo delete_content_dir # Delete directory where Hugo Markdown files are written
+wp hh-hugo migrate_post         Migrate a single item from WP `post` post type to Hugo `blog` section
+wp hh-hugo migrate_all_posts    Migrate all items from WP `post` post type to Hugo `blog` section
+wp hh-hugo migrate_group        Migrate a single group
+wp hh-hugo migrate_all_groups   Migrate all groups
+wp hh-hugo delete_content_dirs  Delete hugo-content and hugo-images directories
+wp hh-hugo markdown             Print post_content transformed to Markdown
 ```
